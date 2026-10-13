@@ -1,0 +1,71 @@
+# Everything the cards say that does not come from GitHub's API.
+# Change it, push, and the Action redraws the cards within a minute or two.
+
+login = "Faaz17"
+
+[hero]
+eyebrow = "Computer Engineering · University of Wollongong in Dubai"
+name = "Faaz Ali Sayyed"
+chip = "FAAZ17"
+# Each focus area is drawn as a net label routed back to the chip. Three fit.
+nets = [
+  { net = "EDGE_AI", detail = "Jetson · CUDA · OpenCV" },
+  { net = "EMBEDDED", detail = "Arduino · sensors · state machines" },
+  { net = "ROBOTICS", detail = "Webots · autonomy · VLM perception" },
+]
+
+[languages]
+rows = 6
+# Left out of the meter: a classmate's project hosted here, the prototype that
+# backtestingfinal replaced (it would count the same code twice), and CSCI291,
+# which GitHub reads as mostly SWIG and assembly.
+exclude_repos = ["muskaannn-final-webot", "backtesting-platform", "CSCI291"]
+# Markup and build files are not what anyone means by "languages I write".
+exclude_languages = ["HTML", "CSS", "SCSS", "Makefile", "Dockerfile", "Batchfile"]
+
+[toolchain]
+# Twelve fit on the card, three to a row.
+parts = [
+  { part = "PYTHON", role = "LANGUAGE" },
+  { part = "C / C++", role = "LANGUAGE" },
+  { part = "JAVA", role = "LANGUAGE" },
+  { part = "TYPESCRIPT", role = "LANGUAGE" },
+  { part = "CUDA", role = "GPU COMPUTE" },
+  { part = "JETSON", role = "EDGE AI" },
+  { part = "OPENCV", role = "VISION" },
+  { part = "ARDUINO", role = "MICROCONTROLLER" },
+  { part = "WEBOTS", role = "ROBOT SIM" },
+  { part = "NEXT.JS", role = "WEB APPS" },
+  { part = "UNITY", role = "XR AND 3D" },
+  { part = "MATLAB", role = "NUMERICS" },
+]
+
+# Each project becomes assets/project-<repo>.svg. README.md links them, so
+# change both together. Blurbs must fit in three lines; the build says if not.
+[[projects]]
+repo = "nurdle-dna"
+title = "NurdleDNA"
+tag = "Embedded + AI"
+blurb = "Inline water monitor that catches nurdle microplastics: Jetson Nano vision, an Arduino control loop and a live Firebase dashboard. I was the system architect."
+
+[[projects]]
+repo = "ResQ"
+title = "ResQ"
+tag = "Robotics · Hackathon"
+blurb = "Webots rescue robot that patrols on its own, steers around obstacles on eight sonars and spots victims with Gemini 2.5 Flash. A Next.js mission control shows its camera live."
+
+[[projects]]
+repo = "Breathe"
+title = "Breathe"
+tag = "On-device AI"
+blurb = "Meeting notes for Meet, Zoom and Webex. Whisper runs on your own machine through WebGPU, so the audio never leaves it, and summaries run only when you ask."
+
+[[projects]]
+repo = "Agents-and-Skills"
+title = "Agents & Skills"
+tag = "Dev tooling"
+blurb = "52 Claude Code subagents, 44 skills and the project-brain layout I put in every repo, written while building robots, circuits and web apps."
+
+[[links]]
+label = "LinkedIn"
+handle = "in/faazsayyed17"
