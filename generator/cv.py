@@ -107,7 +107,7 @@ def _years(ink: Ink, F, axis: _Axis, y: float, size: float) -> str:
     out = []
     first_year = next((m for m in range(axis.m0 + 1, axis.m1) if m % 12 == 0), axis.m1)
     start_w = ink.width(F["mono"], _label(axis.m0), size, 0.06)
-    if axis.x(axis.m0) + 3 + start_w + 10 < axis.x(first_year):  # a narrow chart has no room for both
+    if axis.x(axis.m0) + 3 + start_w + 6 < axis.x(first_year):  # a narrow chart has no room for both
         out.append(ink.text(F["mono"], _label(axis.m0), axis.x(axis.m0) + 3, y, size, P["phosphor_dim"], track=0.06))
     for m in range(axis.m0 + 1, axis.m1):
         if m % 12 == 0:
