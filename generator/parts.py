@@ -461,3 +461,12 @@ def serpentine(x0: float, x1: float, y: float, amp: float, bumps: int) -> list[t
         pts += [(xs, y), (xs, y + amp), (xs + bw, y + amp), (xs + bw, y)]
     return pts + [(x1, y)]
 
+
+def instrument(W: float, H: float, r: float) -> str:
+    """The case of a bench instrument: dark green body, sheen, edge highlight, a screw
+    in each corner. Needs SHEEN and STEEL."""
+    return (f'<rect width="{num(W)}" height="{num(H)}" rx="{r}" fill="{P["body"]}"/>'
+            f'<rect width="{num(W)}" height="{num(H)}" rx="{r}" fill="url(#sheen)"/>'
+            f'<path d="{rounded_rect_d(0.75, 0.75, W - 1.5, H - 1.5, r - 0.75)}" fill="none" '
+            f'stroke="{P["edge"]}" stroke-width="1.5"/>')
+

@@ -4,8 +4,9 @@
 login = "Faaz17"
 
 [hero]
-eyebrow = "Computer Engineering · University of Wollongong in Dubai"
-eyebrow_mobile = ["Computer Engineering", "UOWD · Dubai"]  # the phone card has less room
+# Degree as the CV states it.
+eyebrow = "Computer & Autonomous Systems Engineering · UOWD Dubai"
+eyebrow_mobile = ["Computer & Autonomous", "Systems Engineering", "UOWD · Dubai"]  # the phone card has less room
 name = "Faaz Ali Sayyed"
 # The current role sits beside the board's status LED.
 role = "President, Engineers Australia Student Society at UOWD"
@@ -13,9 +14,9 @@ term = "2026/27"
 chip = "FAAZ17"
 # Each focus area is drawn as a net label routed back to the chip. Three fit.
 nets = [
-  { net = "EDGE_AI", detail = "Jetson · CUDA · OpenCV" },
-  { net = "EMBEDDED", detail = "Arduino · sensors · state machines" },
-  { net = "ROBOTICS", detail = "Webots · autonomy · VLM perception" },
+  { net = "EDGE_AI", detail = "Jetson · CUDA · YOLOv8" },
+  { net = "EMBEDDED", detail = "Arduino · C/C++ firmware · IoT" },
+  { net = "ROBOTICS", detail = "ROS 2 · Webots · drones" },
 ]
 
 [languages]
@@ -28,20 +29,52 @@ exclude_repos = ["muskaannn-final-webot", "backtesting-platform", "CSCI291"]
 exclude_languages = ["HTML", "CSS", "SCSS", "Makefile", "Dockerfile", "Batchfile"]
 
 [toolchain]
-# Twelve fit on the card: three to a row on desktop, two on a phone.
+# From the skills section of the CV. Twelve fit: three to a row on desktop, two on a phone.
 parts = [
   { part = "PYTHON", role = "LANGUAGE" },
   { part = "C / C++", role = "LANGUAGE" },
   { part = "JAVA", role = "LANGUAGE" },
-  { part = "TYPESCRIPT", role = "LANGUAGE" },
-  { part = "CUDA", role = "GPU COMPUTE" },
+  { part = "PYTORCH", role = "DEEP LEARNING" },
+  { part = "YOLO", role = "OBJECT DETECTION" },
+  { part = "HUGGING FACE", role = "LLMS" },
   { part = "JETSON", role = "EDGE AI" },
-  { part = "OPENCV", role = "VISION" },
+  { part = "CUDA", role = "GPU COMPUTE" },
   { part = "ARDUINO", role = "MICROCONTROLLER" },
+  { part = "ROS 2", role = "ROBOTICS" },
   { part = "WEBOTS", role = "ROBOT SIM" },
-  { part = "NEXT.JS", role = "WEB APPS" },
-  { part = "UNITY", role = "XR AND 3D" },
-  { part = "MATLAB", role = "NUMERICS" },
+  { part = "ARDUPILOT", role = "DRONES" },
+]
+
+# --- From the CV and LinkedIn ------------------------------------------------
+# Only what is on the CV, or recorded as true beside it. Team work is named as
+# team work, and the NurdleDNA journal paper stays off until it is published.
+
+[career]
+# A logic analyser of roles over time: one channel each, high while it ran.
+# Months are "YYYY-MM"; leave out `to` while a role is still going. `kind` sets
+# the trace colour: work (amber), lead (green) or study (mint).
+start = "2024-09"
+end = "2026-12"
+channels = [
+  { org = "UOWD", role = "BEng Computer & Autonomous Systems, CGPA 9.3/10", kind = "study", from = "2024-09" },
+  { org = "UOWD Tech Club", role = "Deputy Head of Engineering", kind = "lead", from = "2025-01", to = "2025-11" },
+  { org = "Emertxe", role = "Embedded & IoT Intern: C/C++ firmware, sensor IoT", kind = "work", from = "2025-05", to = "2025-07" },
+  { org = "Pantech.AI", role = "ML Intern: PyTorch, fine-tuned LLMs", kind = "work", from = "2025-07", to = "2025-08" },
+  { org = "Engineers Australia UAE", role = "ECT Board Member", kind = "lead", from = "2025-07" },
+  { org = "Techfest, IIT Bombay", role = "College Ambassador", kind = "lead", from = "2025-07", to = "2025-12" },
+  { org = "EA Student Society, UOWD", role = "President", kind = "lead", from = "2026-07" },
+]
+
+[record]
+awards_for = "NurdleDNA"
+papers = [
+  { venue = "13th IEEE ICSIMA 2026", title = "NurdleDNA: An Edge-AI and Smart IoT Inline System for Source-Level Microplastic Detection", note = "first author" },
+  { venue = "12th EECSI 2026", title = "Comparative Analysis of Classical and Quantum Vibration Sensors Under Radiation-Induced Environmental Stress", note = "system and simulation architecture" },
+]
+awards = [
+  { title = "First Prize", detail = "UOWD Innovation Fair 2026" },
+  { title = "AURAK Excellence Award, Tier 1", detail = "the only UOWD team to qualify" },
+  { title = "James Dyson Award 2026", detail = "qualifier" },
 ]
 
 # Each project becomes assets/project-<repo>.svg and project-<repo>-mobile.svg.
@@ -107,8 +140,8 @@ tap = { from = 1, part = "SKILLS", note = "44 procedures" }
 [[projects]]
 repo = "Spacecraft-Nervous-System-Simulation"
 title = "Spacecraft Nervous System"
-tag = "Signal processing"
-context = "Course project · Python and MATLAB"
+tag = "Research"
+context = "EECSI 2026 paper · Python and MATLAB"
 blurb = "Simulates a spacecraft's nervous system: quantum and classical sensors feed a low-pass filter and sensor fusion, then rule-based and autoencoder checks decide how the craft responds."
 flow = [
   { part = "SENSORS", note = "quantum + IoT" },

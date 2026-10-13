@@ -12,7 +12,7 @@ from __future__ import annotations
 import math
 
 from ghdata import MONTHS, Activity
-from parts import P, SHEEN, STEEL, document, knob, mix, monotone_path, num, rect, rounded_rect_d, screw
+from parts import P, SHEEN, STEEL, document, instrument, knob, mix, monotone_path, num, rect, screw
 from typeset import Ink
 
 COLS, ROWS = 13, 6   # 13 divisions of 4 weeks across, 6 divisions up
@@ -169,13 +169,6 @@ def _readouts(act: Activity) -> list[tuple[str, str, int]]:
     ]
 
 
-def _case(W: float, H: float, r: float) -> str:
-    return (f'<rect width="{num(W)}" height="{num(H)}" rx="{r}" fill="{P["body"]}"/>'
-            f'<rect width="{num(W)}" height="{num(H)}" rx="{r}" fill="url(#sheen)"/>'
-            f'<path d="{rounded_rect_d(0.75, 0.75, W - 1.5, H - 1.5, r - 0.75)}" fill="none" '
-            f'stroke="{P["edge"]}" stroke-width="1.5"/>')
-
-
 def _stamp(act: Activity) -> str:
     return f"{act.today.day} {MONTHS[act.today.month - 1].upper()} {act.today.year}"
 
@@ -183,7 +176,7 @@ def _stamp(act: Activity) -> str:
 def activity_desktop(F, act: Activity) -> str:
     W, H = 880, 300
     ink = Ink()
-    out = [_case(W, H, 18)]
+    out = [instrument(W, H, 18)]
     out += [screw(x, y) for x, y in ((12, 12), (W - 12, 12), (12, H - 12), (W - 12, H - 12))]
     out += [rect(20, 20, 600, 260, ' rx="14" fill="#061A11" stroke="#173F2D"'),
             rect(28, 28, 584, 244, ' rx="10" fill="url(#crt)"')]
@@ -224,7 +217,7 @@ def activity_desktop(F, act: Activity) -> str:
 def activity_mobile(F, act: Activity) -> str:
     W, H = 360, 474
     ink = Ink()
-    out = [_case(W, H, 16)]
+    out = [instrument(W, H, 16)]
     out += [screw(x, y, 4) for x, y in ((12, H - 12), (W - 12, H - 12))]
     out += [rect(8, 8, 344, 258, ' rx="12" fill="#061A11" stroke="#173F2D"'),
             rect(14, 14, 332, 246, ' rx="9" fill="url(#crt)"')]

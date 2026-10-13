@@ -30,7 +30,8 @@ github.com/Faaz17 and 404.
 
 ## Changing what the cards say
 
-Edit `profile.toml`. It holds the hero lines, the toolchain chips, the featured
+Edit `profile.toml`. It holds the hero lines, the toolchain chips, the career
+timeline and the papers and awards (both taken from the CV), the featured
 projects with their signal-flow diagrams, and the connector badges. Push, and
 the cards redraw within a couple of minutes.
 
@@ -87,6 +88,7 @@ runs at 07:23 Dubai time, when both calendars agree on the date.
 | `ghdata.py` | The single GraphQL query and the numbers derived from it |
 | `parts.py` | Palette, board, copper, chips, edge connector, the SVG wrapper |
 | `hero.py` | The main board: name, role, focus areas, the chip |
+| `cv.py` | The career timeline (a logic analyser) and the papers and awards board |
 | `scope.py` | The oscilloscope of weekly contributions |
 | `bench.py` | Languages as LED bar graphs and the toolchain as chips |
 | `modules.py` | Project modules with their signal-flow diagrams, and connector badges |

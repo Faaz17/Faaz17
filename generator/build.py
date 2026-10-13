@@ -18,6 +18,7 @@ import tomllib
 from pathlib import Path
 
 import bench
+import cv
 import ghdata
 import hero
 import modules
@@ -65,6 +66,10 @@ def main() -> int:
     out = {
         "hero.svg": hero.hero_desktop(F, cfg["hero"], act.today),
         "hero-mobile.svg": hero.hero_mobile(F, cfg["hero"], act.today),
+        "career.svg": cv.career_desktop(F, cfg["career"], act.today),
+        "career-mobile.svg": cv.career_mobile(F, cfg["career"], act.today),
+        "record.svg": cv.record_desktop(F, cfg["record"]),
+        "record-mobile.svg": cv.record_mobile(F, cfg["record"]),
         "activity.svg": scope.activity_desktop(F, act),
         "activity-mobile.svg": scope.activity_mobile(F, act),
         "bench.svg": bench.bench_desktop(F, langs, parts),

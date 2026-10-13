@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/Faaz17/Faaz17/main/assets/hero-mobile.svg">
-    <img src="assets/hero.svg" width="100%" alt="Faaz Ali Sayyed, Computer Engineering at the University of Wollongong in Dubai, and President of the Engineers Australia Student Society at UOWD for 2026/27. Focus areas: edge AI on Jetson with CUDA and OpenCV, embedded systems on Arduino, and robotics in Webots.">
+    <img src="assets/hero.svg" width="100%" alt="Faaz Ali Sayyed, Computer and Autonomous Systems Engineering at the University of Wollongong in Dubai, and President of the Engineers Australia Student Society at UOWD for 2026/27. Focus areas: edge AI on Jetson with CUDA and YOLOv8, embedded C and C++ firmware and IoT on Arduino, and robotics with ROS 2, Webots and drones.">
   </picture>
 </p>
 
@@ -9,11 +9,19 @@
   <a href="https://www.linkedin.com/in/faazsayyed17/"><img src="assets/link-linkedin.svg" height="44" alt="LinkedIn: in/faazsayyed17"></a>
 </p>
 
-Hi, I'm Faaz. I study Computer Engineering at the University of Wollongong in Dubai, and most of my projects put code on hardware or into a robot simulator: computer vision on a Jetson, Arduino control loops, robots in Webots.
+<p align="center">
+  <picture>
+    <source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/Faaz17/Faaz17/main/assets/career-mobile.svg">
+    <img src="assets/career.svg" width="100%" alt="Career timeline. Study: BEng Computer and Autonomous Systems Engineering at UOWD since September 2024, CGPA 9.3 out of 10. Work: Embedded Systems and IoT Intern at Emertxe, May to July 2025, writing C and C++ firmware for sensor IoT systems; Machine Learning Intern at Pantech.AI, July to August 2025, PyTorch and fine-tuned LLMs. Leadership: Deputy Head of Engineering, UOWD Tech Club, January to November 2025; ECT Board Member, Engineers Australia UAE Chapter, since July 2025; College Ambassador, Techfest IIT Bombay, July to December 2025; President, Engineers Australia Student Society at UOWD, since July 2026.">
+  </picture>
+</p>
 
-For 2026/27 I'm President of the Engineers Australia Student Society at UOWD, and I build the apps our events run on. In September, 203 students joined the School of Engineering orientation games through the live-scoring app I built for them.
-
-Ask me about Jetson and CUDA, embedded state machines, Webots, or setting up Claude Code agents for a real project.
+<p align="center">
+  <picture>
+    <source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/Faaz17/Faaz17/main/assets/record-mobile.svg">
+    <img src="assets/record.svg" width="100%" alt="Published: NurdleDNA, An Edge-AI and Smart IoT Inline System for Source-Level Microplastic Detection, 13th IEEE ICSIMA 2026, first author; Comparative Analysis of Classical and Quantum Vibration Sensors Under Radiation-Induced Environmental Stress, 12th EECSI 2026. Awarded for NurdleDNA: First Prize at the UOWD Innovation Fair 2026; AURAK Excellence Award Tier 1, the only UOWD team to qualify; James Dyson Award 2026 qualifier.">
+  </picture>
+</p>
 
 <p align="center">
   <picture>
@@ -25,7 +33,7 @@ Ask me about Jetson and CUDA, embedded state machines, Webots, or setting up Cla
 <p align="center">
   <picture>
     <source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/Faaz17/Faaz17/main/assets/bench-mobile.svg">
-    <img src="assets/bench.svg" width="100%" alt="Languages by share of code in my public repositories, drawn as LED bar graphs, and my toolchain drawn as chips: Python, C and C++, Java, TypeScript, CUDA, Jetson, OpenCV, Arduino, Webots, Next.js, Unity and MATLAB.">
+    <img src="assets/bench.svg" width="100%" alt="Languages by share of code in my public repositories, drawn as LED bar graphs, and my toolchain drawn as chips: Python, C and C++, Java, PyTorch, YOLO, Hugging Face, Jetson, CUDA, Arduino, ROS 2, Webots and ArduPilot.">
   </picture>
 </p>
 
