@@ -29,9 +29,11 @@ python generator/build.py --offline                        # redraw from the las
 
 In PowerShell, set the token with `$env:GITHUB_TOKEN = gh auth token` first.
 
-A local run reads the same public data as the workflow, so it draws the same
-cards. The contribution total can still differ by a few, because a personal
-token may see contributions that the public count leaves out.
+A local run reads the same public data as the workflow, but its contribution
+numbers can differ slightly. With your own token, GitHub dates the calendar in
+your time zone, while the workflow gets UTC days, so late-evening runs can shift
+every rolling week by a day. The workflow's numbers are the ones that count: it
+runs at 07:23 Dubai time, when both calendars agree on the date.
 
 ## Rules that hold the design together
 

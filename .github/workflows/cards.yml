@@ -21,7 +21,8 @@ concurrency:
 
 jobs:
   draw:
-    runs-on: ubuntu-latest
+    # Pinned so a runner image change cannot break the daily redraw unannounced.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
