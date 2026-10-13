@@ -5,7 +5,11 @@ login = "Faaz17"
 
 [hero]
 eyebrow = "Computer Engineering · University of Wollongong in Dubai"
+eyebrow_mobile = ["Computer Engineering", "UOWD · Dubai"]  # the phone card has less room
 name = "Faaz Ali Sayyed"
+# The current role sits beside the board's status LED.
+role = "President, Engineers Australia Student Society at UOWD"
+term = "2026/27"
 chip = "FAAZ17"
 # Each focus area is drawn as a net label routed back to the chip. Three fit.
 nets = [
@@ -24,7 +28,7 @@ exclude_repos = ["muskaannn-final-webot", "backtesting-platform", "CSCI291"]
 exclude_languages = ["HTML", "CSS", "SCSS", "Makefile", "Dockerfile", "Batchfile"]
 
 [toolchain]
-# Twelve fit on the card, three to a row.
+# Twelve fit on the card: three to a row on desktop, two on a phone.
 parts = [
   { part = "PYTHON", role = "LANGUAGE" },
   { part = "C / C++", role = "LANGUAGE" },
@@ -40,32 +44,86 @@ parts = [
   { part = "MATLAB", role = "NUMERICS" },
 ]
 
-# Each project becomes assets/project-<repo>.svg. README.md links them, so
-# change both together. Blurbs must fit in three lines; the build says if not.
+# Each project becomes assets/project-<repo>.svg and project-<repo>-mobile.svg.
+# README.md links them, so change both together.
+#
+# `flow` is the signal path drawn on the card, three to five stages; `tap` is
+# an optional branch off the stage numbered `from` (counting from 0). Labels
+# and notes have to fit their blocks, and blurbs four lines; the build stops
+# and says which one if not.
 [[projects]]
 repo = "nurdle-dna"
 title = "NurdleDNA"
 tag = "Embedded + AI"
-blurb = "Inline water monitor that catches nurdle microplastics: Jetson Nano vision, an Arduino control loop and a live Firebase dashboard. I was the system architect."
+context = "ECTE 250 · team of 4 · system architect"
+blurb = "Inline water monitor that catches nurdle microplastics. A Jetson Nano runs YOLOv8n on the flow cell's camera, an Arduino state machine closes the valve, and every event lands on a live Firebase dashboard."
+flow = [
+  { part = "FLOW CELL", note = "camera, UV LED" },
+  { part = "JETSON NANO", note = "YOLOv8n vision" },
+  { part = "ARDUINO UNO", note = "5-state FSM" },
+  { part = "PINCH VALVE", note = "isolates flow" },
+]
+tap = { from = 1, part = "FIREBASE", note = "live dashboard" }
 
 [[projects]]
 repo = "ResQ"
 title = "ResQ"
-tag = "Robotics · Hackathon"
-blurb = "Webots rescue robot that patrols on its own, steers around obstacles on eight sonars and spots victims with Gemini 2.5 Flash. A Next.js mission control shows its camera live."
+tag = "Robotics"
+context = "HWT Hackathon · Python and Next.js"
+blurb = "Rescue robot in Webots that patrols on its own, steers around obstacles on eight sonars and spots victims with Gemini 2.5 Flash. A Next.js mission control shows the camera and detections live."
+flow = [
+  { part = "WEBOTS", note = "Pioneer 3-DX" },
+  { part = "CONTROLLER", note = "4-state nav" },
+  { part = "GEMINI", note = "finds victims" },
+  { part = "DASHBOARD", note = "via WebSocket" },
+]
 
 [[projects]]
 repo = "Breathe"
 title = "Breathe"
 tag = "On-device AI"
-blurb = "Meeting notes for Meet, Zoom and Webex. Whisper runs on your own machine through WebGPU, so the audio never leaves it, and summaries run only when you ask."
+context = "Chrome and Edge extension"
+blurb = "Meeting notes for Meet, Zoom and Webex. Whisper transcribes on your own machine through WebGPU, so the audio never leaves it. Summaries of decisions and action items run only when you ask."
+flow = [
+  { part = "MEETING TAB", note = "audio capture" },
+  { part = "WHISPER", note = "local, WebGPU" },
+  { part = "TRANSCRIPT", note = "kept on device" },
+  { part = "SUMMARY", note = "when you ask" },
+]
 
 [[projects]]
 repo = "Agents-and-Skills"
 title = "Agents & Skills"
 tag = "Dev tooling"
-blurb = "52 Claude Code subagents, 44 skills and the project-brain layout I put in every repo, written while building robots, circuits and web apps."
+context = "Claude Code and Codex · used in every repo"
+blurb = "My Claude Code setup: 52 subagents, 44 skills and the project-brain layout I put in every repo, written while building robots, circuits and web apps."
+flow = [
+  { part = "CLAUDE.MD", note = "project brain" },
+  { part = "RULES", note = "what is decided" },
+  { part = "SUBAGENTS", note = "52 specialists" },
+]
+tap = { from = 1, part = "SKILLS", note = "44 procedures" }
 
+[[projects]]
+repo = "Spacecraft-Nervous-System-Simulation"
+title = "Spacecraft Nervous System"
+tag = "Signal processing"
+context = "Course project · Python and MATLAB"
+blurb = "Simulates a spacecraft's nervous system: quantum and classical sensors feed a low-pass filter and sensor fusion, then rule-based and autoencoder checks decide how the craft responds."
+flow = [
+  { part = "SENSORS", note = "quantum + IoT" },
+  { part = "LOW-PASS", note = "DSP filter" },
+  { part = "FUSION", note = "combines both" },
+  { part = "DECIDE", note = "rules + AI" },
+]
+
+# Connector badges under the hero. `id` names the file: assets/link-<id>.svg.
 [[links]]
+id = "linkedin"
 label = "LinkedIn"
 handle = "in/faazsayyed17"
+
+[[links]]
+id = "instagram"
+label = "EA Student Society"
+handle = "instagram.com/engaustralia_uowd"

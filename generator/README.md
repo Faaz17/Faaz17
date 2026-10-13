@@ -1,23 +1,47 @@
 # How the profile cards are made
 
 `build.py` reads `profile.toml` and the public GitHub data for Faaz17, then
-writes every SVG in `assets/`. The workflow in `.github/workflows/cards.yml` runs it every morning
-at 07:23 Dubai time, and again whenever `profile.toml`, the generator or the
-fonts change, then commits any card that came out different.
+writes every SVG in `assets/`. The workflow in `.github/workflows/cards.yml`
+runs it every morning at 07:23 Dubai time, and again whenever `profile.toml`,
+the generator or the fonts change, then commits any card that came out
+different.
+
+## Two layouts of every card
+
+Each card is drawn twice: `<name>.svg` for desktop and `<name>-mobile.svg` for
+phones. On a phone GitHub narrows the README to about 300px, which shrinks a
+desktop card's text to a few pixels, so the phone layouts stack everything at
+full width with bigger type.
+
+The root `README.md` chooses between them with `<picture>` and a width media
+query:
+
+```html
+<picture>
+  <source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/Faaz17/Faaz17/main/assets/hero-mobile.svg">
+  <img src="assets/hero.svg" width="100%" alt="...">
+</picture>
+```
+
+The phone source uses the full raw URL on purpose. GitHub rewrites a relative
+`<img src>` to point into the repo, but nothing confirms it does the same for
+`srcset`, and a relative `srcset` would otherwise resolve against
+github.com/Faaz17 and 404.
 
 ## Changing what the cards say
 
 Edit `profile.toml`. It holds the hero lines, the toolchain chips, the featured
-projects and the LinkedIn badge. Push, and the cards redraw within a couple of
-minutes.
+projects with their signal-flow diagrams, and the connector badges. Push, and
+the cards redraw within a couple of minutes.
 
-A project shows up in two places: its entry in `profile.toml` draws the card, and
-its line in the root `README.md` links it. Add or remove both together. The build
-prints a note if the README is missing a card, and deletes the SVG of any project
-you take out of `profile.toml`.
+A project shows up in two places: its entry in `profile.toml` draws both of its
+cards, and its block in the root `README.md` links them. Add or remove both
+together. The build prints a note if the README is missing a card, and deletes
+any SVG it no longer draws.
 
-Blurbs have to fit in three lines on the card. If one is too long, the build
-stops and says which.
+The build also stops, and says which one, if a blurb runs past four lines, a
+diagram label or note does not fit its block, or a chip name does not fit its
+chip.
 
 ## Running it locally
 
@@ -37,7 +61,7 @@ runs at 07:23 Dubai time, when both calendars agree on the date.
 
 ## Rules that hold the design together
 
-- Every colour comes from `P` at the top of `cards.py`, and all of them are
+- Every colour comes from `P` at the top of `parts.py`, and all of them are
   greens. Change the palette there, not card by card.
 - Text is drawn as glyph outlines from the fonts in `assets/fonts`: Michroma
   for names and headings, IBM Plex Mono for labels and numbers, and IBM Plex
@@ -46,16 +70,24 @@ runs at 07:23 Dubai time, when both calendars agree on the date.
   string, would break.
 - With animation off, every card still has to be complete. That is why the
   scope trace is visible by default and only animates in, the signal pulses on
-  the hero are hidden by default, and the scope's beam starts hidden.
+  the hero and the diagrams are hidden by default, and the scope's beam starts
+  hidden.
+- Browsers pause animations in images that are off screen, so the scope draws
+  its trace when a visitor scrolls to it. A full-page screenshot therefore
+  shows the scope without its trace; scroll it into view before judging it.
 - Never edit `assets/*.svg` by hand. The next run overwrites them.
 
 ## Files
 
 | File | What it does |
 |---|---|
-| `build.py` | Entry point: fetch, draw, write, tidy up |
+| `build.py` | Entry point: fetch, draw both layouts of every card, write, tidy up |
 | `ghdata.py` | The single GraphQL query and the numbers derived from it |
-| `cards.py` | Palette and every card's drawing |
+| `parts.py` | Palette, board, copper, chips, edge connector, the SVG wrapper |
+| `hero.py` | The main board: name, role, focus areas, the chip |
+| `scope.py` | The oscilloscope of weekly contributions |
+| `bench.py` | Languages as LED bar graphs and the toolchain as chips |
+| `modules.py` | Project modules with their signal-flow diagrams, and connector badges |
 | `typeset.py` | Shapes text with HarfBuzz and turns it into glyph outlines |
 
 The fonts are under the SIL Open Font License. Their license files sit next to

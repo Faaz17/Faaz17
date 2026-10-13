@@ -17,8 +17,11 @@ import sys
 import tomllib
 from pathlib import Path
 
-import cards
+import bench
 import ghdata
+import hero
+import modules
+import scope
 from typeset import Face
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -55,17 +58,25 @@ def main() -> int:
     lang = cfg["languages"]
     langs = ghdata.languages(user, lang["exclude_repos"], lang["exclude_languages"], lang["rows"])
 
+    # Every card comes in two layouts: <name>.svg for desktop, <name>-mobile.svg for
+    # phones. README.md picks between them with <picture> and a width media query.
+    parts = cfg["toolchain"]["parts"]
+    hide = lang["exclude_languages"]
     out = {
-        "hero.svg": cards.hero(F, cfg["hero"], act.today),
-        "activity.svg": cards.activity_card(F, act),
-        "languages.svg": cards.languages_card(F, langs),
-        "toolchain.svg": cards.toolchain_card(F, cfg["toolchain"]["parts"]),
+        "hero.svg": hero.hero_desktop(F, cfg["hero"], act.today),
+        "hero-mobile.svg": hero.hero_mobile(F, cfg["hero"], act.today),
+        "activity.svg": scope.activity_desktop(F, act),
+        "activity-mobile.svg": scope.activity_mobile(F, act),
+        "bench.svg": bench.bench_desktop(F, langs, parts),
+        "bench-mobile.svg": bench.bench_mobile(F, langs, parts),
     }
     for proj in cfg["projects"]:
         repo = ghdata.repo(user, proj["repo"])
-        out[f"project-{proj['repo'].lower()}.svg"] = cards.project_card(F, proj, repo, lang["exclude_languages"])
+        slug = proj["repo"].lower()
+        out[f"project-{slug}.svg"] = modules.project_desktop(F, proj, repo, hide)
+        out[f"project-{slug}-mobile.svg"] = modules.project_mobile(F, proj, repo, hide)
     for link in cfg["links"]:
-        out[f"link-{link['label'].lower()}.svg"] = cards.link_badge(F, link["label"], link["handle"])
+        out[f"link-{link['id']}.svg"] = modules.link_badge(F, link["label"], link["handle"])
 
     changed = 0
     for name, svg in out.items():
@@ -73,8 +84,8 @@ def main() -> int:
         if not path.exists() or path.read_text(encoding="utf-8") != svg:
             path.write_text(svg, encoding="utf-8", newline="\n")
             changed += 1
-    # A project or link taken out of profile.toml takes its card with it.
-    for stale in [*ASSETS.glob("project-*.svg"), *ASSETS.glob("link-*.svg")]:
+    # A card that is no longer drawn (a project taken out of profile.toml, say) goes too.
+    for stale in ASSETS.glob("*.svg"):
         if stale.name not in out:
             stale.unlink()
             print(f"removed {stale.name}")
