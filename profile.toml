@@ -122,8 +122,3 @@ flow = [
 id = "linkedin"
 label = "LinkedIn"
 handle = "in/faazsayyed17"
-
-[[links]]
-id = "instagram"
-label = "EA Student Society"
-handle = "instagram.com/engaustralia_uowd"

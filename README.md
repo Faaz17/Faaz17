@@ -7,7 +7,6 @@
 
 <p align="center">
   <a href="https://www.linkedin.com/in/faazsayyed17/"><img src="assets/link-linkedin.svg" height="44" alt="LinkedIn: in/faazsayyed17"></a>
-  <a href="https://www.instagram.com/engaustralia_uowd/"><img src="assets/link-instagram.svg" height="44" alt="EA Student Society on Instagram: engaustralia_uowd"></a>
 </p>
 
 Hi, I'm Faaz. I study Computer Engineering at the University of Wollongong in Dubai, and most of my projects put code on hardware or into a robot simulator: computer vision on a Jetson, Arduino control loops, robots in Webots.
