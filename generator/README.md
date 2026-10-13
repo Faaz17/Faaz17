@@ -61,17 +61,19 @@ runs at 07:23 Dubai time, when both calendars agree on the date.
 
 ## Rules that hold the design together
 
-- Every colour comes from `P` at the top of `parts.py`, and all of them are
-  greens. Change the palette there, not card by card.
+- Every colour comes from `P` at the top of `parts.py`. The boards are green,
+  exposed metal (pads, pins, mounting rings, edge fingers) is gold, component
+  bodies are steel, tan or cream, and amber is kept for the scope's second
+  channel and the TX/RX LEDs. Change the palette there, not card by card.
 - Text is drawn as glyph outlines from the fonts in `assets/fonts`: Michroma
   for names and headings, IBM Plex Mono for labels and numbers, and IBM Plex
   Sans Condensed for running text. Do not swap this for SVG `<text>`. The
   viewer's own fonts would replace these, and the layout, which measures every
   string, would break.
 - With animation off, every card still has to be complete. That is why the
-  scope trace is visible by default and only animates in, the signal pulses on
-  the hero and the diagrams are hidden by default, and the scope's beam starts
-  hidden.
+  scope traces are visible by default and only animate in, the signal pulses on
+  the hero and the diagrams are hidden by default, the TX/RX LEDs simply stay
+  lit, and the scope's beam starts hidden.
 - Browsers pause animations in images that are off screen, so the scope draws
   its trace when a visitor scrolls to it. A full-page screenshot therefore
   shows the scope without its trace; scroll it into view before judging it.

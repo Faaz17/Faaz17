@@ -71,6 +71,7 @@ def fetch(login: str, token: str) -> dict:
 class Activity:
     total: int               # contributions in the last year, as the profile graph counts them
     weeks: list[int]         # 52 seven-day totals, oldest first; the last one ends on `today`
+    week_active: list[int]   # days with any contribution in each of those weeks, 0 to 7
     week_starts: list[date]
     days: list[date]         # the 364 days behind `weeks`, for placing month labels
     today: date
@@ -92,6 +93,7 @@ def activity(user: dict) -> Activity:
     window = days[-364:]
     window = [(None, 0)] * (364 - len(window)) + window  # a young account has less than a year
     weeks = [sum(c for _, c in window[i:i + 7]) for i in range(0, 364, 7)]
+    week_active = [sum(1 for _, c in window[i:i + 7] if c) for i in range(0, 364, 7)]
     starts = [window[i][0] or window[-1][0] for i in range(0, 364, 7)]
     peak_index = max(range(len(weeks)), key=lambda i: (weeks[i], i))  # latest of any tie
 
@@ -103,6 +105,7 @@ def activity(user: dict) -> Activity:
     return Activity(
         total=calendar["totalContributions"],
         weeks=weeks,
+        week_active=week_active,
         week_starts=starts,
         days=[d for d, _ in window],
         today=days[-1][0],

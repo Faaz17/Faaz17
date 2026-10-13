@@ -12,8 +12,8 @@ import math
 from datetime import date
 
 from ghdata import month_label
-from parts import (BOARD_DEFS, EPOXY, P, PULSE_CSS, board, document, fingers, num, path_d, rect, star_d,
-                   tag_pill, trace)
+from parts import (BOARD_DEFS, EPOXY, METAL, P, PULSE_CSS, board, document, fingers, num, path_d, rect,
+                   star_d, tag_pill, trace)
 from typeset import Ink
 
 SHADES = [P["phosphor"], "#3CC27D", "#2A8B5B"]  # language dots, largest first
@@ -26,6 +26,19 @@ def _arrow(x: float, y: float, direction: str) -> str:
     else:  # down
         pts = [(x - 4.5, y - 7), (x, y), (x + 4.5, y - 7)]
     return f'<path d="{path_d(pts)}Z" fill="{P["trace_lit"]}"/>'
+
+
+def _pad(x: float, y: float, w: float, h: float) -> str:
+    """A gold contact where a trace meets a block."""
+    return rect(x, y, w, h, f' fill="{METAL}"')
+
+
+def _frame(ink: Ink, F, x: float, y: float, w: float, h: float, size: float) -> str:
+    """A silkscreen frame titled SIGNAL FLOW, the title breaking its top edge."""
+    tw = ink.width(F["mono_md"], "SIGNAL FLOW", size, 0.14)
+    return (rect(x, y, w, h, f' rx="4" fill="none" stroke="{P["silk"]}" stroke-opacity="0.22" stroke-width="0.8"')
+            + rect(x + 8, y - size * 0.7, tw + 12, size * 1.4, f' fill="{P["mask"]}"')
+            + ink.text(F["mono_md"], "SIGNAL FLOW", x + 14, y + size * 0.36, size, P["silk_faint"], track=0.14))
 
 
 def _block(ink: Ink, F, x, y, w, h, part: dict, *, two_lines: bool, label: float, note: float) -> str:
@@ -54,7 +67,7 @@ def _diagram_across(ink: Ink, F, flow: list, tap: dict | None, x0: float, x1: fl
     n, gap, bh = len(flow), 30, 42
     bw = (x1 - x0 - gap * (n - 1)) / n
     cy = y + bh / 2
-    copper, parts, pulses = [], [], []
+    copper, parts, pulses, contacts = [], [], [], []
     for i, part in enumerate(flow):
         bx = x0 + i * (bw + gap)
         parts.append(_block(ink, F, bx, y, bw, bh, part, two_lines=True, label=10.5, note=11.5))
@@ -62,21 +75,23 @@ def _diagram_across(ink: Ink, F, flow: list, tap: dict | None, x0: float, x1: fl
             route = [(bx + bw + 1, cy), (bx + bw + gap - 1, cy)]
             copper.append(trace(route, width=2.2, color=P["trace_lit"]) + _arrow(route[1][0], cy, "right"))
             pulses.append(f'<path class="flow s{i}" d="{path_d(route)}" pathLength="100"/>')
+            contacts.append(_pad(bx + bw - 2, cy - 4, 4, 8) + _pad(bx + bw + gap - 2, cy - 4, 4, 8))
     if tap:
         src = tap["from"]
         bx = x0 + src * (bw + gap)
-        ty = y + bh + 30
+        ty = y + bh + 26
         parts.append(_block(ink, F, bx, ty, bw, bh, tap, two_lines=True, label=10.5, note=11.5))
         route = [(bx + bw / 2, y + bh + 1), (bx + bw / 2, ty - 1)]
         copper.append(trace(route, width=2.2, color=P["trace_lit"]) + _arrow(bx + bw / 2, ty - 1, "down"))
         pulses.append(f'<path class="flow s{src}" d="{path_d(route)}" pathLength="100"/>')
-    return "".join(copper + parts), "".join(pulses)
+        contacts.append(_pad(bx + bw / 2 - 4, y + bh - 2, 8, 4) + _pad(bx + bw / 2 - 4, ty - 2, 8, 4))
+    return "".join(copper + parts + contacts), "".join(pulses)
 
 
 def _diagram_down(ink: Ink, F, flow: list, tap: dict | None, x0: float, x1: float, y: float) -> tuple[str, float]:
     """Blocks top to bottom, the tap indented below them. Returns (svg, bottom edge)."""
     bh, gap = 32, 14
-    copper, parts = [], []
+    copper, parts, contacts = [], [], []
     tops = []
     for i, part in enumerate(flow):
         by = y + i * (bh + gap)
@@ -86,6 +101,7 @@ def _diagram_down(ink: Ink, F, flow: list, tap: dict | None, x0: float, x1: floa
             ax = x0 + 26
             copper.append(trace([(ax, by + bh + 1), (ax, by + bh + gap - 1)], width=2.2, color=P["trace_lit"])
                           + _arrow(ax, by + bh + gap - 1, "down"))
+            contacts.append(_pad(ax - 4, by + bh - 2, 8, 4) + _pad(ax - 4, by + bh + gap - 2, 8, 4))
     bottom = tops[-1] + bh
     if tap:
         ty = bottom + gap
@@ -94,8 +110,9 @@ def _diagram_down(ink: Ink, F, flow: list, tap: dict | None, x0: float, x1: floa
         sy, gutter = tops[tap["from"]] + bh / 2, x0 - 12
         route = [(x0 - 1, sy), (gutter, sy), (gutter, ty + bh / 2), (indent - 1, ty + bh / 2)]
         copper.append(trace(route, width=2.2, color=P["trace_lit"]) + _arrow(indent - 1, ty + bh / 2, "right"))
+        contacts.append(_pad(x0 - 2, sy - 4, 4, 8) + _pad(indent - 2, ty + bh / 2 - 4, 4, 8))
         bottom = ty + bh
-    return "".join(copper + parts), bottom
+    return "".join(copper + parts + contacts), bottom
 
 
 def _meta(ink: Ink, F, repo: dict, hide: list[str], x: float, y: float, right: float, *, size: float,
@@ -141,7 +158,8 @@ def project_desktop(F, proj: dict, repo: dict, hide: list[str]) -> str:
         out.append(ink.text(F["sans"], line, 24, 92 + 18.5 * i, 13.5, P["silk_body"]))
 
     tap = proj.get("tap")
-    diagram, pulses = _diagram_across(ink, F, proj["flow"], tap, 410, W - 24, 50 if tap else 80)
+    out.append(_frame(ink, F, 398, 36, W - 24 - 398 + 10, 126, 8.5))  # ends 10px above the meta row
+    diagram, pulses = _diagram_across(ink, F, proj["flow"], tap, 412, W - 28, 48 if tap else 78)
     out.append(diagram)
     out.append(pulses)
     out.append(_meta(ink, F, repo, hide, 24, 180, W - 24, size=11, langs_max=3))
@@ -160,8 +178,10 @@ def project_mobile(F, proj: dict, repo: dict, hide: list[str]) -> str:
     titles = ink.wrap(F["display"], proj["title"], 21, W - 2 * left, 0.02)
     title_y = [56 + 17 * len(context) + 24 + 26 * i for i in range(len(titles))]
     blurb_y = [title_y[-1] + 30 + 21 * i for i in range(len(lines))]
-    diagram, bottom = _diagram_down(ink, F, proj["flow"], proj.get("tap"), 44, W - left, blurb_y[-1] + 22)
-    meta_y = bottom + 34
+    diagram_y = blurb_y[-1] + 38
+    diagram, bottom = _diagram_down(ink, F, proj["flow"], proj.get("tap"), 44, W - left - 8, diagram_y)
+    frame = _frame(ink, F, 22, diagram_y - 16, W - 44, bottom - diagram_y + 30, 9)
+    meta_y = bottom + 46
     H = meta_y + 34
 
     out = [board(W, H, r=14, holes=[(16, 16), (W - 16, 16)], hole_r=3.6)]
@@ -174,6 +194,7 @@ def project_mobile(F, proj: dict, repo: dict, hide: list[str]) -> str:
         out.append(ink.text(F["display"], line, left, y, 21, P["silk"], track=0.02))
     for line, y in zip(lines, blurb_y):
         out.append(ink.text(F["sans"], line, left, y, 15, P["silk_body"]))
+    out.append(frame)
     out.append(diagram)
     out.append(_meta(ink, F, repo, hide, left, meta_y, W - left, size=12, langs_max=2))
     out.append(fingers(40, W - 40, H - 12))
@@ -192,7 +213,7 @@ def link_badge(F, label: str, handle: str) -> str:
     pins = "".join(rect(14 + 9 * c, 9 + 9 * r, 6, 6) for r in range(3) for c in range(2))
     out = [board(W, H, r=10),
            rect(10, 5, 23, 34, f' rx="2" fill="none" stroke="{P["silk"]}" stroke-opacity="0.3" stroke-width="0.8"'),
-           f'<g fill="{P["tin"]}">{pins}</g>',
+           f'<g fill="{METAL}">{pins}</g>',
            ink.text(F["display"], label.upper(), 46, 20, 10.5, P["silk"], track=0.16),
            ink.text(F["mono"], handle, 46, 34, 10, P["silk_dim"])]
     return document(W, H, ink, "".join(out), title=f"{label}: {handle}", desc=f"{label}: {handle}",

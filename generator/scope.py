@@ -1,22 +1,26 @@
-"""Activity: an oscilloscope on the bench.
+"""Activity: a two-channel oscilloscope on the bench.
 
-Each point is seven days of contributions. The trigger level is the weekly
-average and a cursor marks the busiest week, as a scope would show them. The
-measure panel sits beside the screen on the desktop card and below it on the
-phone card.
+CH1 (green) is contributions per week, drawn as a smooth analog trace. CH2
+(amber) is how many days of that week had any contribution, drawn as a
+stepped digital trace: volume and consistency on one screen. The trigger level
+is CH1's weekly average and a cursor marks the busiest week, as a scope would
+show them. The measure panel sits beside the screen on desktop and below it on
+a phone.
 """
 from __future__ import annotations
 
 import math
 
 from ghdata import MONTHS, Activity
-from parts import P, SHEEN, document, monotone_path, num, rect, rounded_rect_d
+from parts import P, SHEEN, STEEL, document, knob, mix, monotone_path, num, rect, rounded_rect_d, screw
 from typeset import Ink
 
-COLS, ROWS = 13, 6  # 13 divisions of 4 weeks across, 6 divisions up
+COLS, ROWS = 13, 6   # 13 divisions of 4 weeks across, 6 divisions up
+CH2_STEP = 2         # CH2 is drawn at 2 days per division, so a full week sits at 3.5 divisions
+AMBER_TEXT = mix(P["amber"], "#FFFFFF", 0.45)
 
 DEFS = (
-    SHEEN,
+    SHEEN, STEEL,
     '<radialGradient id="crt" cx="0.5" cy="0.45" r="0.75">'
     f'<stop offset="0" stop-color="#072318"/><stop offset="1" stop-color="{P["glass"]}"/></radialGradient>'
     '<filter id="bloom" x="-0.2" y="-0.5" width="1.4" height="2"><feGaussianBlur stdDeviation="3"/></filter>',
@@ -37,8 +41,8 @@ def nice_step(peak: int, divisions: int) -> int:
 
 def _plot(ink: Ink, F, act: Activity, x0: float, x1: float, y0: float, y1: float, *,
           label: float, small: float, month_every: int = 1) -> tuple[str, int]:
-    """Graticule, trigger level, busiest-week cursor, trace and beam.
-    Returns (svg, contributions per vertical division)."""
+    """Graticule, both channels, trigger level, busiest-week cursor and beam.
+    Returns (svg, CH1 contributions per division)."""
     out = []
     div_w, div_h = (x1 - x0) / COLS, (y1 - y0) / ROWS
     step = nice_step(act.peak, ROWS)
@@ -64,15 +68,27 @@ def _plot(ink: Ink, F, act: Activity, x0: float, x1: float, y0: float, y1: float
     ys = [y1 - v / top * (y1 - y0) for v in act.weeks]
     d = monotone_path(xs, ys)
 
-    # Weekly average as the trigger level, marked on the right edge as a scope does.
+    # CH2: a stepped trace, one level per week, drawn under CH1.
+    levels = [y1 - v / (CH2_STEP * ROWS) * (y1 - y0) for v in act.week_active]
+    d2 = f"M{num(x0)} {num(levels[0])}"
+    for i, ly in enumerate(levels):
+        if i:
+            d2 += f"V{num(ly)}"
+        d2 += f"H{num(x0 + (i + 1) * slot)}"
+    out.append(f'<path class="draw" d="{d2}" pathLength="100" fill="none" stroke="{P["amber"]}" '
+               f'stroke-width="5" stroke-opacity="0.3" filter="url(#bloom)"/>')
+    out.append(f'<path class="draw" d="{d2}" pathLength="100" fill="none" stroke="{P["amber"]}" '
+               f'stroke-width="1.5" stroke-opacity="0.9"/>')
+
+    # CH1's weekly average as the trigger level, marked on the right edge as a scope does.
     avg = sum(act.weeks) / len(act.weeks)
     ay = y1 - avg / top * (y1 - y0)
     out.append(f'<line x1="{num(x0)}" y1="{num(ay)}" x2="{num(x1)}" y2="{num(ay)}" stroke="{P["phosphor"]}" '
                f'stroke-opacity="0.45" stroke-dasharray="4 4"/>')
     out.append(f'<path d="M{num(x1 + 11)} {num(ay - 4.5)}L{num(x1 + 3)} {num(ay)}L{num(x1 + 11)} {num(ay + 4.5)}Z" '
                f'fill="{P["phosphor"]}"/>')
-    # Its label sits on the line wherever the trace leaves the most room, and is
-    # drawn after the trace so it stays legible if no spot is fully clear.
+    # Its label sits on the line wherever CH1 leaves the most room, and is drawn
+    # after the traces so it stays legible if no spot is fully clear.
     avg_text = f"AVG {avg:.0f} / WK"
     aw = ink.width(F["mono_md"], avg_text, label, 0.06)
     top_edge, bottom_edge = ay - label * 1.8, ay - 2
@@ -97,7 +113,7 @@ def _plot(ink: Ink, F, act: Activity, x0: float, x1: float, y0: float, y1: float
     out.append(rect(lx - 4, y0 + 5, pw + 8, label * 1.55, f' rx="2" fill="{P["glass"]}" fill-opacity="0.9"'))
     out.append(ink.text(F["mono_md"], peak_text, lx, y0 + 5 + label * 1.15, label, P["bloom"], track=0.06))
 
-    # The trace: a wide blurred pass for the phosphor bloom, then the line, then its hot core.
+    # CH1: a wide blurred pass for the phosphor bloom, then the line, then its hot core.
     out.append(f'<path class="draw" d="{d}" pathLength="100" fill="none" stroke="{P["phosphor"]}" '
                f'stroke-width="6" stroke-opacity="0.4" filter="url(#bloom)"/>')
     out.append(f'<path class="draw" d="{d}" pathLength="100" fill="none" stroke="{P["phosphor"]}" stroke-width="2"/>')
@@ -126,11 +142,21 @@ def _plot(ink: Ink, F, act: Activity, x0: float, x1: float, y0: float, y1: float
     return "".join(out), step
 
 
+def _channel(ink: Ink, F, name: str, title: str, x: float, y: float, size: float, colour: str,
+             text_colour: str) -> tuple[str, float]:
+    """A channel badge and its title, as the scope prints them. Returns (svg, right edge)."""
+    svg = (rect(x, y - 12, 30, 16, f' rx="3" fill="none" stroke="{colour}"')
+           + ink.text(F["mono_sb"], name, x + 15, y, 9.5, colour, anchor="middle")
+           + ink.text(F["sans_md"], title, x + 40, y + 1, size, text_colour))
+    return svg, x + 40 + ink.width(F["sans_md"], title, size)
+
+
 def _about(act: Activity) -> tuple[str, str]:
     title = f"{act.total:,} contributions in the last 12 months"
-    desc = (f"Oscilloscope-style chart of contributions per week. Busiest week: {act.peak}, "
-            f"starting {act.peak_start.day} {MONTHS[act.peak_start.month - 1]} {act.peak_start.year}. "
-            f"Active on {act.active_days} of the last 365 days. Longest streak: {act.longest_streak} days.")
+    desc = (f"Oscilloscope-style chart. Channel 1: contributions per week; channel 2: active days per week. "
+            f"Busiest week: {act.peak}, starting {act.peak_start.day} {MONTHS[act.peak_start.month - 1]} "
+            f"{act.peak_start.year}. Active on {act.active_days} of the last 365 days. "
+            f"Longest streak: {act.longest_streak} days.")
     return title, desc
 
 
@@ -150,21 +176,37 @@ def _case(W: float, H: float, r: float) -> str:
             f'stroke="{P["edge"]}" stroke-width="1.5"/>')
 
 
+def _stamp(act: Activity) -> str:
+    return f"{act.today.day} {MONTHS[act.today.month - 1].upper()} {act.today.year}"
+
+
 def activity_desktop(F, act: Activity) -> str:
     W, H = 880, 300
     ink = Ink()
-    out = [_case(W, H, 18),
-           rect(20, 20, 600, 260, ' rx="14" fill="#061A11" stroke="#173F2D"'),
-           rect(28, 28, 584, 244, ' rx="10" fill="url(#crt)"')]
-    plot, step = _plot(ink, F, act, 72, 592, 66, 234, label=10.5, small=10)
+    out = [_case(W, H, 18)]
+    out += [screw(x, y) for x, y in ((12, 12), (W - 12, 12), (12, H - 12), (W - 12, H - 12))]
+    out += [rect(20, 20, 600, 260, ' rx="14" fill="#061A11" stroke="#173F2D"'),
+            rect(28, 28, 584, 244, ' rx="10" fill="url(#crt)"')]
+    plot, step = _plot(ink, F, act, 72, 592, 62, 226, label=10.5, small=10)
     out.append(plot)
 
-    out.append(rect(40, 39, 30, 16, f' rx="3" fill="none" stroke="{P["phosphor"]}"'))
-    out.append(ink.text(F["mono_sb"], "CH1", 55, 51, 9.5, P["phosphor"], anchor="middle"))
-    out.append(ink.text(F["sans_md"], "Contributions per week", 80, 52, 13.5, P["bloom"]))
-    out.append(ink.text(F["mono"], f"{step} / div    4 wk / div", 600, 51, 11, P["phosphor_dim"], anchor="end"))
+    # Top bar: both channels, and the RUN light.
+    ch1, right = _channel(ink, F, "CH1", "Contributions per week", 40, 51, 13.5, P["phosphor"], P["bloom"])
+    ch2, _ = _channel(ink, F, "CH2", "Active days per week", right + 18, 51, 13.5, P["amber"], AMBER_TEXT)
+    out += [ch1, ch2]
+    out.append(rect(566, 39, 34, 16, f' rx="3" fill="{P["phosphor"]}" fill-opacity="0.9"'))
+    out.append(ink.text(F["mono_sb"], "RUN", 583, 51, 9.5, P["glass"], anchor="middle", track=0.08))
 
+    # Status bar along the bottom of the screen: scales, timebase, date.
+    out.append(ink.text(F["mono"], f"CH1 {step}/div", 40, 264, 10, P["phosphor_dim"]))
+    out.append(ink.text(F["mono"], f"CH2 {CH2_STEP} d/div", 140, 264, 10, mix(P["amber"], P["glass"], 0.35)))
+    out.append(ink.text(F["mono"], "TIME 4 wk/div", 250, 264, 10, P["phosphor_dim"]))
+    out.append(ink.text(F["mono"], _stamp(act), 600, 264, 10, P["phosphor_dim"], anchor="end", track=0.06))
+
+    # Measure panel, with the front-panel knobs above it.
     mx, mr = 644, 856
+    out.append(knob(806, 44, 11, -40))
+    out.append(knob(838, 44, 11, 35))
     out.append(ink.text(F["display"], "MEASURE", mx, 47, 10.5, P["silk_faint"], track=0.24))
     out.append(ink.text(F["display"], f"{act.total:,}", mx - 2, 100, 38, P["silk"]))
     out.append(ink.text(F["mono"], "contributions, last 12 months", mx, 120, 11, P["silk_dim"]))
@@ -180,30 +222,36 @@ def activity_desktop(F, act: Activity) -> str:
 
 
 def activity_mobile(F, act: Activity) -> str:
-    W, H = 360, 470
+    W, H = 360, 474
     ink = Ink()
-    out = [_case(W, H, 16),
-           rect(8, 8, 344, 252, ' rx="12" fill="#061A11" stroke="#173F2D"'),
-           rect(14, 14, 332, 240, ' rx="9" fill="url(#crt)"')]
-    plot, step = _plot(ink, F, act, 44, 332, 58, 210, label=11, small=10.5, month_every=2)
+    out = [_case(W, H, 16)]
+    out += [screw(x, y, 4) for x, y in ((12, H - 12), (W - 12, H - 12))]
+    out += [rect(8, 8, 344, 258, ' rx="12" fill="#061A11" stroke="#173F2D"'),
+            rect(14, 14, 332, 246, ' rx="9" fill="url(#crt)"')]
+    plot, step = _plot(ink, F, act, 44, 332, 56, 204, label=11, small=10.5, month_every=2)
     out.append(plot)
 
-    out.append(rect(24, 26, 30, 16, f' rx="3" fill="none" stroke="{P["phosphor"]}"'))
-    out.append(ink.text(F["mono_sb"], "CH1", 39, 38, 9.5, P["phosphor"], anchor="middle"))
-    out.append(ink.text(F["sans_md"], "Contributions per week", 62, 39, 14.5, P["bloom"]))
-    out.append(ink.text(F["mono"], f"{step} / div", 334, 38, 11, P["phosphor_dim"], anchor="end"))
+    ch1, right = _channel(ink, F, "CH1", "Contributions", 24, 39, 14, P["phosphor"], P["bloom"])
+    ch2, _ = _channel(ink, F, "CH2", "Active days", right + 14, 39, 14, P["amber"], AMBER_TEXT)
+    out += [ch1, ch2]
 
-    out.append(ink.text(F["display"], "MEASURE", 22, 292, 11, P["silk_faint"], track=0.24))
-    out.append(ink.text(F["display"], f"{act.total:,}", 20, 340, 40, P["silk"]))
-    out.append(ink.text(F["mono"], "contributions, last 12 months", 22, 362, 12, P["silk_dim"]))
-    out.append(f'<line x1="22" y1="380" x2="338" y2="380" stroke="{P["silk_faint"]}" stroke-opacity="0.4"/>')
+    out.append(ink.text(F["mono"], f"CH1 {step}/div", 24, 248, 10.5, P["phosphor_dim"]))
+    out.append(ink.text(F["mono"], f"CH2 {CH2_STEP} d/div", 118, 248, 10.5, mix(P["amber"], P["glass"], 0.35)))
+    out.append(ink.text(F["mono"], _stamp(act), 334, 248, 10.5, P["phosphor_dim"], anchor="end"))
+
+    out.append(knob(300, 292, 10, -40))
+    out.append(knob(330, 292, 10, 35))
+    out.append(ink.text(F["display"], "MEASURE", 22, 296, 11, P["silk_faint"], track=0.24))
+    out.append(ink.text(F["display"], f"{act.total:,}", 20, 344, 40, P["silk"]))
+    out.append(ink.text(F["mono"], "contributions, last 12 months", 22, 366, 12, P["silk_dim"]))
+    out.append(f'<line x1="22" y1="384" x2="338" y2="384" stroke="{P["silk_faint"]}" stroke-opacity="0.4"/>')
     for i, (label, sub, value) in enumerate(_readouts(act)):
         x = 22 + 110 * i
         first, _, rest = label.partition(" ")  # three columns: each label takes two short lines
-        out.append(ink.text(F["mono_md"], first, x, 404, 10.5, P["silk_dim"], track=0.06))
-        out.append(ink.text(F["mono_md"], rest, x, 418, 10.5, P["silk_dim"], track=0.06))
-        out.append(ink.text(F["mono_sb"], f"{value:,}", x, 446, 24, P["silk"]))
-        out.append(ink.text(F["mono"], sub, x, 462, 10.5, P["silk_faint"]))
+        out.append(ink.text(F["mono_md"], first, x, 408, 10.5, P["silk_dim"], track=0.06))
+        out.append(ink.text(F["mono_md"], rest, x, 422, 10.5, P["silk_dim"], track=0.06))
+        out.append(ink.text(F["mono_sb"], f"{value:,}", x, 450, 24, P["silk"]))
+        out.append(ink.text(F["mono"], sub, x, 466, 10.5, P["silk_faint"]))
 
     title, desc = _about(act)
     return document(W, H, ink, "".join(out), title=title, desc=desc, defs=DEFS, style=CSS)
