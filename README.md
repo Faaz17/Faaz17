@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/Faaz17/Faaz17/main/assets/hero-mobile.svg">
-    <img src="assets/hero.svg" width="100%" alt="Faaz Ali Sayyed, Computer and Autonomous Systems Engineering at the University of Wollongong in Dubai, and President of the Engineers Australia Student Society at UOWD for 2026/27. Focus areas: edge AI on Jetson with CUDA and YOLOv8, embedded C and C++ firmware and IoT on Arduino, and robotics with ROS 2, Webots and drones.">
+    <img src="assets/hero.svg" width="100%" alt="Faaz Ali Sayyed, Computer and Autonomous Systems Engineering at the University of Wollongong in Dubai, President of the Engineers Australia Student Society at UOWD for 2026/27, and open to internships. Focus areas: edge AI on Jetson with CUDA and YOLOv8, embedded C and C++ firmware and IoT on Arduino, and robotics with ROS 2, Webots and drones.">
   </picture>
 </p>
 
@@ -24,9 +24,18 @@
 </p>
 
 <p align="center">
-  <picture>
+  <a href="https://faaz17.github.io/Faaz17/scope/"><picture>
     <source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/Faaz17/Faaz17/main/assets/activity-mobile.svg">
-    <img src="assets/activity.svg" width="100%" alt="Oscilloscope-style chart of my GitHub contributions per week over the last 12 months, with the total, the busiest week, active days and the longest streak.">
+    <img src="assets/activity.svg" width="100%" alt="Oscilloscope-style chart of my GitHub contributions per week over the last 12 months, with the total, the busiest week, active days and the longest streak. Click to open the working oscilloscope.">
+  </picture></a>
+</p>
+
+<p align="center"><sub><a href="https://faaz17.github.io/Faaz17/scope/">Open the working oscilloscope</a>: turn the knobs, zoom to single days, stop the beam and measure any stretch of the year.</sub></p>
+
+<p align="center">
+  <picture>
+    <source media="(max-width: 600px)" srcset="https://raw.githubusercontent.com/Faaz17/Faaz17/main/assets/matrix-mobile.svg">
+    <img src="assets/matrix.svg" width="100%" alt="My contribution calendar for the last year as an LED matrix, one LED per day, brighter on busier days.">
   </picture>
 </p>
 

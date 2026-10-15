@@ -21,6 +21,7 @@ import bench
 import cv
 import ghdata
 import hero
+import matrix
 import modules
 import scope
 from typeset import Face
@@ -72,6 +73,8 @@ def main() -> int:
         "record-mobile.svg": cv.record_mobile(F, cfg["record"]),
         "activity.svg": scope.activity_desktop(F, act),
         "activity-mobile.svg": scope.activity_mobile(F, act),
+        "matrix.svg": matrix.matrix_desktop(F, act),
+        "matrix-mobile.svg": matrix.matrix_mobile(F, act),
         "bench.svg": bench.bench_desktop(F, langs, parts),
         "bench-mobile.svg": bench.bench_mobile(F, langs, parts),
     }
@@ -82,6 +85,20 @@ def main() -> int:
         out[f"project-{slug}-mobile.svg"] = modules.project_mobile(F, proj, repo, hide)
     for link in cfg["links"]:
         out[f"link-{link['id']}.svg"] = modules.link_badge(F, link["label"], link["handle"])
+
+    # The operable oscilloscope (scope/index.html) reads the daily samples from here.
+    samples = sorted((d.isoformat(), c) for week in act.calendar for d, c, _ in week)
+    scope_data = json.dumps({
+        "login": cfg["login"],
+        "last_sample": act.today.isoformat(),
+        "total": act.total,
+        "longest_streak": act.longest_streak,
+        "days": samples,
+    }, separators=(",", ":")) + "\n"
+    data_path = ROOT / "scope" / "data.json"
+    data_path.parent.mkdir(exist_ok=True)
+    if not data_path.exists() or data_path.read_text(encoding="utf-8") != scope_data:
+        data_path.write_text(scope_data, encoding="utf-8", newline="\n")
 
     changed = 0
     for name, svg in out.items():

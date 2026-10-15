@@ -36,7 +36,7 @@ query($login: String!) {
     contributionsCollection {
       contributionCalendar {
         totalContributions
-        weeks { contributionDays { date contributionCount } }
+        weeks { contributionDays { date contributionCount contributionLevel } }
       }
     }
   }
@@ -44,6 +44,7 @@ query($login: String!) {
 """
 
 MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
+LEVELS = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
 
 
 def fetch(login: str, token: str) -> dict:
@@ -79,6 +80,10 @@ class Activity:
     peak_start: date
     active_days: int         # days with at least one contribution, out of the last 365
     longest_streak: int
+    # GitHub's own calendar, column by column (Sunday first), each day as
+    # (date, count, level 0-4). The level is GitHub's quartile, so a matrix drawn
+    # from it lights the same cells as the profile graph.
+    calendar: list[list[tuple[date, int, int]]]
 
 
 def activity(user: dict) -> Activity:
@@ -113,6 +118,8 @@ def activity(user: dict) -> Activity:
         peak_start=starts[peak_index],
         active_days=sum(1 for _, c in days[-365:] if c),
         longest_streak=longest,
+        calendar=[[(date.fromisoformat(d["date"]), d["contributionCount"], LEVELS.get(d.get("contributionLevel"), 0))
+                   for d in week["contributionDays"]] for week in calendar["weeks"]],
     )
 
 

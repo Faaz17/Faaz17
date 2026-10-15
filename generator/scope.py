@@ -209,13 +209,15 @@ def activity_desktop(F, act: Activity) -> str:
         out.append(ink.text(F["mono_md"], label, mx, y, 11, P["silk_dim"], track=0.1))
         out.append(ink.text(F["mono"], sub, mx, y + 16, 10.5, P["silk_faint"]))
         out.append(ink.text(F["mono_sb"], f"{value:,}", mr, y + 9, 21, P["silk"], anchor="end"))
+    # The README links this card to the working scope (scope/index.html).
+    out.append(ink.text(F["mono_md"], "CLICK TO OPERATE ↗", mr - 4, 289, 10, P["phosphor"], anchor="end", track=0.1))
 
     title, desc = _about(act)
     return document(W, H, ink, "".join(out), title=title, desc=desc, defs=DEFS, style=CSS)
 
 
 def activity_mobile(F, act: Activity) -> str:
-    W, H = 360, 474
+    W, H = 360, 496
     ink = Ink()
     out = [instrument(W, H, 16)]
     out += [screw(x, y, 4) for x, y in ((12, H - 12), (W - 12, H - 12))]
@@ -245,6 +247,7 @@ def activity_mobile(F, act: Activity) -> str:
         out.append(ink.text(F["mono_md"], rest, x, 422, 10.5, P["silk_dim"], track=0.06))
         out.append(ink.text(F["mono_sb"], f"{value:,}", x, 450, 24, P["silk"]))
         out.append(ink.text(F["mono"], sub, x, 466, 10.5, P["silk_faint"]))
+    out.append(ink.text(F["mono_md"], "TAP TO OPERATE ↗", W / 2, 488, 11, P["phosphor"], anchor="middle", track=0.1))
 
     title, desc = _about(act)
     return document(W, H, ink, "".join(out), title=title, desc=desc, defs=DEFS, style=CSS)

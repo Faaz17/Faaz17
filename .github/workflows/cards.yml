@@ -37,7 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Commit them if anything changed
         run: |
-          git add assets
+          git add assets scope/data.json
           if git diff --cached --quiet; then
             echo "No card changed."
             exit 0

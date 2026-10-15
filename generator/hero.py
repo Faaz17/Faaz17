@@ -25,9 +25,19 @@ def _check(cfg: dict) -> None:
         raise ValueError("the hero has room for one to three nets")
 
 
+def _status(ink: Ink, F, text: str, x: float, y: float) -> str:
+    """A lit tag: a blinking LED and the status in phosphor, e.g. Open to internships."""
+    label = text.upper()
+    w = ink.width(F["mono_sb"], label, 10, 0.12) + 34
+    return (rect(x, y, w, 19, f' rx="9.5" fill="{P["mask_lo"]}" stroke="{P["phosphor"]}" stroke-opacity="0.7"')
+            + f'<g class="led"><circle cx="{x + 12}" cy="{y + 9.5}" r="6" fill="{P["phosphor"]}" opacity="0.3" '
+              f'filter="url(#glow)"/><circle cx="{x + 12}" cy="{y + 9.5}" r="3.2" fill="{P["phosphor"]}"/></g>'
+            + ink.text(F["mono_sb"], label, x + 22, y + 13.2, 10, P["phosphor"], track=0.12))
+
+
 def _about(cfg: dict) -> tuple[str, str]:
     title = f"{cfg['name']}: {cfg['eyebrow']}"
-    desc = f"{cfg['role']}, {cfg['term']}. " + "; ".join(
+    desc = (f"{cfg['status']}. " if cfg.get("status") else "") + f"{cfg['role']}, {cfg['term']}. " + "; ".join(
         f"{n['net'].replace('_', ' ').title()}: {n['detail']}" for n in cfg["nets"])
     return title, desc
 
@@ -47,6 +57,8 @@ def hero_desktop(F, cfg: dict, today: date) -> str:
     if ink.width(F["mono_md"], eyebrow, 11, 0.16) > 500:
         raise ValueError("hero eyebrow is too long: it would run into the crystal")
     text.append(ink.text(F["mono_md"], eyebrow, left, 62, 11, P["silk_dim"], track=0.16))
+    if cfg.get("status"):
+        parts.append(_status(ink, F, cfg["status"], 74, 21))
     name = cfg["name"].upper()
     size = 40.0
     while ink.width(F["display"], name, size, 0.03) > 520:
@@ -205,6 +217,8 @@ def hero_mobile(F, cfg: dict, today: date) -> str:
         cu.via(B[i][0], B[i][1] + 8, 2.6)
     parts.append(fiducial(226, 30))
 
+    if cfg.get("status"):
+        parts.append(_status(ink, F, cfg["status"], 30, 20))
     for i, line in enumerate(cfg.get("eyebrow_mobile", [cfg["eyebrow"]])):
         text.append(ink.text(F["mono_md"], line.upper(), left, 56 + 17 * i, 11, P["silk_dim"], track=0.14))
     for line, y in zip(name_lines, name_y):

@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSO-52 · Faaz17</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 rx=%273%27 fill=%27%2303130B%27/%3E%3Cpath d=%27M1 11 L5 11 L7 4 L9 12 L11 7 L15 7%27 fill=%27none%27 stroke=%27%235EF29C%27 stroke-width=%271.6%27/%3E%3C/svg%3E">
+<meta name="description" content="A working two-channel oscilloscope of Faaz Ali Sayyed's GitHub contributions. Turn the knobs, move through the year, stop the beam and measure any stretch of time.">
+<style>
+/* Fonts are the same files the profile cards are drawn from. */
+@font-face{font-family:"Michroma";src:url("../assets/fonts/Michroma-Regular.ttf") format("truetype");font-display:swap}
+@font-face{font-family:"Plex Mono";src:url("../assets/fonts/IBMPlexMono-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"Plex Mono";src:url("../assets/fonts/IBMPlexMono-Medium.ttf") format("truetype");font-weight:500;font-display:swap}
+@font-face{font-family:"Plex Mono";src:url("../assets/fonts/IBMPlexMono-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:"Plex Cond";src:url("../assets/fonts/IBMPlexSansCondensed-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"Plex Cond";src:url("../assets/fonts/IBMPlexSansCondensed-Medium.ttf") format("truetype");font-weight:500;font-display:swap}
+
+/* The palette of the profile cards (generator/parts.py). */
+:root{
+  --bench:#06110C; --body:#0C2519; --body-lo:#081A12; --bezel:#061A11; --glass:#03130B;
+  --edge:#2A7350; --grid:#174C33; --phos:#5EF29C; --phos-dim:#2F9A62; --bloom:#CFFFE3;
+  --amber:#FFB547; --silk:#E3F2E7; --silk-dim:#9DC8AF; --silk-faint:#5F957A; --gold:#D4A64A;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bench);color:var(--silk);font-family:"Plex Cond",system-ui,sans-serif}
+body{min-height:100vh;background:radial-gradient(1200px 600px at 50% -10%,#0E2A1E 0%,var(--bench) 70%)}
+a{color:var(--phos)}
+a:focus-visible,button:focus-visible,.knob:focus-visible,canvas:focus-visible{outline:2px solid var(--phos);outline-offset:3px}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 48px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.back{font:500 13px "Plex Mono";letter-spacing:.04em;text-decoration:none}
+.back:hover{text-decoration:underline}
+.stamp{font:400 12px "Plex Mono";color:var(--silk-faint)}
+
+/* The instrument. */
+.scope{position:relative;background:linear-gradient(180deg,var(--body),var(--body-lo));border:1.5px solid var(--edge);
+  border-radius:20px;padding:22px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04)}
+.screw{position:absolute;width:11px;height:11px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#E3E9EB,#AAB5BA 55%,#66737A)}
+.screw::before,.screw::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:1.4px;background:#4A565B;transform:translate(-50%,-50%)}
+.screw::after{transform:translate(-50%,-50%) rotate(90deg)}
+.s1{top:8px;left:8px}.s2{top:8px;right:8px}.s3{bottom:8px;left:8px}.s4{bottom:8px;right:8px}
+
+.plate{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 4px 10px}
+.model{font:400 15px "Michroma";letter-spacing:.18em;color:var(--silk)}
+.spec{font:500 11px "Plex Mono";letter-spacing:.12em;color:var(--silk-faint)}
+.bezel{background:var(--bezel);border:1px solid #173F2D;border-radius:14px;padding:10px}
+canvas{display:block;width:100%;border-radius:9px;touch-action:none;cursor:grab}
+canvas.dragging{cursor:grabbing}
+.help{margin:10px 4px 0;font:400 13px "Plex Cond";color:var(--silk-dim);line-height:1.45}
+.help b{color:var(--silk);font-weight:500}
+
+/* Front panel. */
+.panel{display:flex;flex-direction:column;gap:16px;min-width:0}
+.group{position:relative;border:1px solid rgba(227,242,231,.16);border-radius:12px;padding:16px 12px 12px}
+.group>h2{position:absolute;top:-8px;left:12px;margin:0;padding:0 7px;background:#0B2318;
+  font:500 10px "Plex Mono";letter-spacing:.16em;color:var(--silk-faint)}
+.keys{display:flex;flex-wrap:wrap;gap:8px}
+.key{font:600 11px "Plex Mono";letter-spacing:.08em;color:var(--silk);cursor:pointer;
+  background:linear-gradient(#1D3E2F,#11281D);border:1px solid #2C5A44;border-radius:7px;padding:9px 11px;
+  box-shadow:0 2px 0 #06120C;transition:transform .05s}
+.key:active{transform:translateY(1px);box-shadow:none}
+.key[aria-pressed="true"]{color:var(--phos);border-color:var(--phos);box-shadow:0 0 12px rgba(94,242,156,.3),0 2px 0 #06120C}
+.key.ch2[aria-pressed="true"]{color:var(--amber);border-color:var(--amber);box-shadow:0 0 12px rgba(255,181,71,.3),0 2px 0 #06120C}
+.key.run{min-width:96px}
+.key.run.on{background:var(--phos);color:#03130B;border-color:var(--phos)}
+.key.run.off{background:var(--amber);color:#03130B;border-color:var(--amber)}
+.knobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 10px;margin-top:12px}
+.knobs.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.kn{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.knob{width:58px;height:58px;border-radius:50%;position:relative;cursor:ns-resize;touch-action:none;
+  background:conic-gradient(from 0deg,#8E9AA0,#E3E9EB 12%,#8E9AA0 25%,#E3E9EB 37%,#8E9AA0 50%,#E3E9EB 62%,#8E9AA0 75%,#E3E9EB 87%,#8E9AA0);
+  box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.knob.small{width:46px;height:46px}
+.knob::before{content:"";position:absolute;inset:6px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#22302A,#121A16)}
+.knob .ptr{position:absolute;left:50%;top:50%;width:2.5px;height:42%;border-radius:2px;background:var(--silk);
+  transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(var(--a,0deg))}
+.klabel{font:500 10px "Plex Mono";letter-spacing:.1em;color:var(--silk-dim);text-align:center;line-height:1.3}
+.kval{font:600 12px "Plex Mono";color:var(--silk);text-align:center;min-height:16px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+/* Measurements. */
+.meas{display:grid;grid-template-columns:1fr auto;gap:5px 10px;font:400 12.5px "Plex Mono";color:var(--silk-dim)}
+.meas b{font-weight:600;color:var(--silk);text-align:right}
+.meas .head{grid-column:1/-1;font:500 11px "Plex Mono";letter-spacing:.12em;color:var(--silk-faint);margin-top:4px}
+.meas .head:first-child{margin-top:0}
+.meas .ca{color:var(--bloom)}
+
+footer{margin-top:18px;font:400 12px "Plex Mono";color:var(--silk-faint);text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+@media (max-width:900px){
+  .scope{grid-template-columns:1fr;padding:16px}
+  .model{font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){.key{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="https://github.com/Faaz17">&larr; github.com/Faaz17</a>
+    <span class="stamp" id="stamp">Loading the samples...</span>
+  </div>
+
+  <main class="scope" aria-label="Oscilloscope of GitHub contributions">
+    <span class="screw s1"></span><span class="screw s2"></span><span class="screw s3"></span><span class="screw s4"></span>
+
+    <section>
+      <div class="plate">
+        <span class="model">DSO-52</span>
+        <span class="spec">2 CHANNELS · 1 SAMPLE / DAY</span>
+      </div>
+      <div class="bezel">
+        <canvas id="screen" tabindex="0" role="img" aria-label="Oscilloscope screen"></canvas>
+      </div>
+      <p class="help"><b>Drag the screen</b> to move through time, <b>scroll on it</b> to zoom, and <b>hover or tap</b> a day to read it.
+        <b>Drag, scroll or arrow-key a knob</b> to turn it. Cursors measure everything between A and B.</p>
+    </section>
+
+    <div class="panel">
+      <div class="group">
+        <h2>MEASURE</h2>
+        <div class="meas" id="meas" aria-live="polite"></div>
+      </div>
+
+      <div class="group">
+        <h2>CONTROL</h2>
+        <div class="keys">
+          <button class="key run on" id="run" type="button">RUN</button>
+          <button class="key" id="autoset" type="button">AUTOSET</button>
+          <button class="key" id="cursors" type="button" aria-pressed="false">CURSORS</button>
+          <button class="key" id="acq" type="button" aria-pressed="false" title="Acquire mode">WEEKLY SUM</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>VERTICAL</h2>
+        <div class="row">
+          <button class="key ch1" id="ch1" type="button" aria-pressed="true">CH1 CONTRIBUTIONS</button>
+        </div>
+        <div class="knobs">
+          <div class="kn"><div class="knob" data-k="v1" role="slider" tabindex="0" aria-label="Channel 1 scale, contributions per division"><span class="ptr"></span></div><div class="klabel">VOLTS/DIV</div><div class="kval" id="k-v1"></div></div>
+          <div class="kn"><div class="knob small" data-k="p1" role="slider" tabindex="0" aria-label="Channel 1 vertical position"><span class="ptr"></span></div><div class="klabel">POSITION</div><div class="kval" id="k-p1"></div></div>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="key ch2" id="ch2" type="button" aria-pressed="true">CH2 ACTIVE DAYS</button>
+        </div>
+        <div class="knobs">
+          <div class="kn"><div class="knob" data-k="v2" role="slider" tabindex="0" aria-label="Channel 2 scale, active days per division"><span class="ptr"></span></div><div class="klabel">VOLTS/DIV</div><div class="kval" id="k-v2"></div></div>
+          <div class="kn"><div class="knob small" data-k="p2" role="slider" tabindex="0" aria-label="Channel 2 vertical position"><span class="ptr"></span></div><div class="klabel">POSITION</div><div class="kval" id="k-p2"></div></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>HORIZONTAL · TRIGGER</h2>
+        <div class="knobs three">
+          <div class="kn"><div class="knob" data-k="t" role="slider" tabindex="0" aria-label="Time per division"><span class="ptr"></span></div><div class="klabel">TIME/DIV</div><div class="kval" id="k-t"></div></div>
+          <div class="kn"><div class="knob small" data-k="h" role="slider" tabindex="0" aria-label="Horizontal position in time"><span class="ptr"></span></div><div class="klabel">POSITION</div><div class="kval" id="k-h"></div></div>
+          <div class="kn"><div class="knob small" data-k="trig" role="slider" tabindex="0" aria-label="Trigger level on channel 1"><span class="ptr"></span></div><div class="klabel">TRIG LEVEL</div><div class="kval" id="k-trig"></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>Samples are Faaz17's public GitHub contributions, one per day, refreshed every morning by the same script that draws the profile cards.</footer>
+</div>
+
+<script>
+"use strict";
+/*
+  DSO-52: an oscilloscope of one person's GitHub contributions.
+
+  The signal is one sample per day (scope/data.json, written by generator/build.py).
+  CH1 is contributions; CH2 is whether the day was active. In WEEKLY SUM mode both
+  are rolling seven-day sums, which is what the profile card shows; DAILY shows the
+  raw samples, so zooming in to a few days per division shows individual days.
+  The screen has 13 x 8 divisions, the same graticule as the card.
+*/
+const COLS = 13, ROWS = 8;
+const TDIV = [{d: 1, l: "1 d"}, {d: 2, l: "2 d"}, {d: 7, l: "1 wk"}, {d: 14, l: "2 wk"}, {d: 28, l: "4 wk"}];
+const V1 = [1, 2, 5, 10, 20, 50, 100];     // contributions per division, 1-2-5 like a real scope
+const V2 = [0.5, 1, 2, 5];                 // active days per division
+const MON = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const DOW = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+const C = {phos:"#5EF29C", phosDim:"#2F9A62", bloom:"#CFFFE3", amber:"#FFB547", grid:"#174C33",
+           glass:"#03130B", glassHi:"#072318", silkFaint:"#5F957A"};
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const st = {mode: "week", t: 4, h: 0, v1: 4, p1: -4, v2: 2, p2: -4, trig: 0,
+            ch1: true, ch2: true, run: !reduced, cursors: false, ca: 0, cb: 0, hover: null, beam: 0};
+let S = null;   // the signals
+let G = null;   // screen geometry
+
+const $ = id => document.getElementById(id);
+const canvas = $("screen"), ctx = canvas.getContext("2d");
+
+// ---------------------------------------------------------------- the data
+async function load() {
+  const res = await fetch("data.json", {cache: "no-store"});
+  const data = await res.json();
+  const dates = data.days.map(([iso]) => new Date(iso + "T00:00:00"));
+  const raw = data.days.map(([, c]) => c);
+  const act = raw.map(c => (c > 0 ? 1 : 0));
+  const roll = arr => arr.map((_, i) => { let s = 0; for (let k = Math.max(0, i - 6); k <= i; k++) s += arr[k]; return s; });
+  S = {n: raw.length, dates, raw, act, wsum: roll(raw), wact: roll(act), total: data.total, streak: data.longest_streak};
+  $("stamp").textContent = "Last sample " + fmtDate(dates[dates.length - 1], true) + " · refreshed every morning";
+  await document.fonts.ready;
+  autoset();
+}
+
+const sig = ch => (st.mode === "week" ? (ch === 1 ? S.wsum : S.wact) : (ch === 1 ? S.raw : S.act));
+const unit1 = () => (st.mode === "week" ? "/wk" : "/day");
+const span = () => COLS * TDIV[st.t].d;
+const maxH = () => Math.max(0, S.n - span());
+function view() { const end = S.n - 1 - st.h; return {start: end - span() + 1, end}; }
+
+// ---------------------------------------------------------------- formatting
+function fmtDate(d, long) {
+  const s = d.getDate() + " " + MON[d.getMonth()].charAt(0) + MON[d.getMonth()].slice(1).toLowerCase();
+  return long ? DOW[d.getDay()].charAt(0) + DOW[d.getDay()].slice(1).toLowerCase() + " " + s + " " + d.getFullYear() : s;
+}
+function fmtSpan(days) {
+  if (days === 0) return "NOW";
+  if (days % 7 === 0) return "-" + days / 7 + " wk";
+  return "-" + days + " d";
+}
+const sgn = v => (v > 0 ? "+" : v < 0 ? "-" : "") + Math.abs(v).toFixed(1);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+// ---------------------------------------------------------------- knobs
+const KN = {
+  v1:   {get: () => st.v1, set: v => (st.v1 = v), min: () => 0, max: () => V1.length - 1, step: () => 1,
+         fmt: () => V1[st.v1] + " " + unit1() + "/div"},
+  p1:   {get: () => st.p1, set: v => (st.p1 = v), min: () => -4, max: () => 4, step: () => 0.2, fmt: () => sgn(st.p1) + " div"},
+  v2:   {get: () => st.v2, set: v => (st.v2 = v), min: () => 0, max: () => V2.length - 1, step: () => 1,
+         fmt: () => V2[st.v2] + (st.mode === "week" ? " d/div" : " /div")},
+  p2:   {get: () => st.p2, set: v => (st.p2 = v), min: () => -4, max: () => 4, step: () => 0.2, fmt: () => sgn(st.p2) + " div"},
+  t:    {get: () => st.t, set: v => { const keep = view().end; st.t = v; st.h = clamp(S.n - 1 - keep, 0, maxH()); },
+         min: () => 0, max: () => TDIV.length - 1, step: () => 1, fmt: () => TDIV[st.t].l + "/div"},
+  h:    {get: () => -st.h, set: v => (st.h = -v), min: () => -maxH(), max: () => 0, step: () => TDIV[st.t].d,
+         fmt: () => fmtSpan(st.h)},
+  trig: {get: () => st.trig, set: v => (st.trig = v), min: () => 0, max: () => V1[st.v1] * ROWS, step: () => V1[st.v1] / 5,
+         fmt: () => (Math.round(st.trig * 10) / 10) + " " + unit1()},
+};
+
+function turn(k, steps) {
+  const kn = KN[k];
+  const v = clamp(kn.get() + steps * kn.step(), kn.min(), kn.max());
+  kn.set(Math.round(v * 1000) / 1000);
+  if (k === "v1") st.trig = clamp(st.trig, 0, V1[st.v1] * ROWS);
+  changed();
+}
+
+function bindKnobs() {
+  document.querySelectorAll(".knob").forEach(el => {
+    const k = el.dataset.k;
+    let start = null;
+    el.addEventListener("pointerdown", e => { el.setPointerCapture(e.pointerId); start = {x: e.clientX, y: e.clientY, n: 0}; e.preventDefault(); });
+    el.addEventListener("pointermove", e => {
+      if (!start) return;
+      const n = Math.trunc(((start.y - e.clientY) + (e.clientX - start.x)) / 16);
+      if (n !== start.n) { turn(k, n - start.n); start.n = n; }
+    });
+    el.addEventListener("pointerup", () => (start = null));
+    el.addEventListener("pointercancel", () => (start = null));
+    el.addEventListener("wheel", e => { e.preventDefault(); turn(k, e.deltaY < 0 ? 1 : -1); }, {passive: false});
+    el.addEventListener("keydown", e => {
+      const map = {ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 5, PageDown: -5};
+      if (e.key in map) { e.preventDefault(); turn(k, map[e.key]); }
+      if (e.key === "Home") { e.preventDefault(); KN[k].set(KN[k].min()); changed(); }
+      if (e.key === "End") { e.preventDefault(); KN[k].set(KN[k].max()); changed(); }
+    });
+  });
+}
+
+function paintKnobs() {
+  for (const k in KN) {
+    const kn = KN[k], el = document.querySelector('.knob[data-k="' + k + '"]');
+    const lo = kn.min(), hi = kn.max(), frac = hi > lo ? (kn.get() - lo) / (hi - lo) : 1;
+    el.style.setProperty("--a", (-135 + 270 * frac) + "deg");
+    el.setAttribute("aria-valuetext", kn.fmt());
+    el.setAttribute("aria-valuenow", kn.get());
+    el.setAttribute("aria-valuemin", lo);
+    el.setAttribute("aria-valuemax", hi);
+    $("k-" + k).textContent = kn.fmt();
+  }
+}
+
+// ---------------------------------------------------------------- buttons
+function autoset() {
+  st.t = TDIV.length - 1; st.h = 0;
+  const {start, end} = view(), s1 = sig(1);
+  let peak = 0, sum = 0, n = 0;
+  for (let i = Math.max(0, start); i <= end; i++) { peak = Math.max(peak, s1[i]); sum += s1[i]; n++; }
+  st.v1 = V1.findIndex(v => v * 6 >= peak); if (st.v1 < 0) st.v1 = V1.length - 1;
+  st.v2 = st.mode === "week" ? 2 : 0;
+  st.p1 = -4; st.p2 = -4;
+  st.trig = n ? Math.round(sum / n) : 0;
+  changed();
+}
+
+function bindButtons() {
+  $("run").addEventListener("click", () => { st.run = !st.run; changed(); if (st.run) loop(); });
+  $("autoset").addEventListener("click", autoset);
+  $("cursors").addEventListener("click", () => {
+    st.cursors = !st.cursors;
+    if (st.cursors) { const {start, end} = view(); const a = Math.max(0, start); st.ca = Math.round(a + (end - a) / 3); st.cb = Math.round(a + 2 * (end - a) / 3); }
+    changed();
+  });
+  $("acq").addEventListener("click", () => { st.mode = st.mode === "week" ? "day" : "week"; const t = st.t, h = st.h; autoset(); st.t = t; st.h = h; changed(); });
+  $("ch1").addEventListener("click", () => { st.ch1 = !st.ch1; changed(); });
+  $("ch2").addEventListener("click", () => { st.ch2 = !st.ch2; changed(); });
+}
+
+function paintButtons() {
+  const r = $("run");
+  r.textContent = st.run ? "RUN" : "STOP";
+  r.className = "key run " + (st.run ? "on" : "off");
+  r.setAttribute("aria-label", st.run ? "Running. Press to stop the beam" : "Stopped. Press to run the beam");
+  $("cursors").setAttribute("aria-pressed", st.cursors);
+  $("acq").textContent = st.mode === "week" ? "WEEKLY SUM" : "DAILY";
+  $("acq").setAttribute("aria-pressed", st.mode === "day");
+  $("ch1").setAttribute("aria-pressed", st.ch1);
+  $("ch2").setAttribute("aria-pressed", st.ch2);
+}
+
+// ---------------------------------------------------------------- screen geometry
+function layout() {
+  const w = canvas.clientWidth, dpr = window.devicePixelRatio || 1;
+  const L = 50, R = 26, T = 30, B = 36;
+  const divW = (w - L - R) / COLS, divH = Math.min(divW, 62);   // square divisions, capped on wide screens
+  const h = T + divH * ROWS + B;
+  canvas.style.height = h + "px";
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  G = {w, h, L, R, T, B, divW, divH, pw: divW * COLS, ph: divH * ROWS};
+}
+const xOf = i => { const {start} = view(); return G.L + (i - start + 0.5) * G.pw / span(); };
+const iOf = x => { const {start} = view(); return Math.round(start + (x - G.L) / (G.pw / span()) - 0.5); };
+const yOf = (v, ch) => {
+  const vdiv = ch === 1 ? V1[st.v1] : V2[st.v2], pos = ch === 1 ? st.p1 : st.p2;
+  return G.T + G.ph / 2 - (v / vdiv + pos) * G.divH;
+};
+
+// ---------------------------------------------------------------- drawing
+function draw() {
+  if (!S || !G) return;
+  const {w, h, L, T, pw, ph, divW, divH} = G;
+  ctx.clearRect(0, 0, w, h);
+  const g = ctx.createRadialGradient(w / 2, h * 0.45, 10, w / 2, h * 0.45, w * 0.7);
+  g.addColorStop(0, C.glassHi); g.addColorStop(1, C.glass);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+
+  // Graticule: dotted divisions, solid border, ticks on the centre lines.
+  ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+  for (let i = 0; i <= COLS; i++) line(L + i * divW, T, L + i * divW, T + ph, i === 0 || i === COLS ? [] : [1, 3]);
+  for (let j = 0; j <= ROWS; j++) line(L, T + j * divH, L + pw, T + j * divH, j === 0 || j === ROWS ? [] : [1, 3]);
+  const cx = L + pw / 2, cy = T + ph / 2;
+  for (let k = 0; k <= COLS * 5; k++) line(L + k * divW / 5, cy - 3, L + k * divW / 5, cy + 3, []);
+  for (let k = 0; k <= ROWS * 5; k++) line(cx - 3, T + k * divH / 5, cx + 3, T + k * divH / 5, []);
+
+  const {start, end} = view();
+  const lo = Math.max(0, start), hi = Math.min(S.n - 1, end);
+
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T, pw, ph); ctx.clip();
+
+  // CH2: a held, stepped trace, digital like the active/idle signal it is.
+  if (st.ch2) {
+    const s2 = sig(2), step = G.pw / span();
+    ctx.beginPath();
+    for (let i = lo; i <= hi; i++) {
+      const x0 = xOf(i) - step / 2, y = yOf(s2[i], 2);
+      if (i === lo) ctx.moveTo(x0, y); else ctx.lineTo(x0, y);
+      ctx.lineTo(x0 + step, y);
+    }
+    glowStroke(C.amber, 1.6, 7);
+  }
+
+  // CH1: the analog trace, dots on the samples once they are far enough apart.
+  const s1 = sig(1), px = G.pw / span();
+  if (st.ch1) {
+    ctx.beginPath();
+    for (let i = lo; i <= hi; i++) { const x = xOf(i), y = yOf(s1[i], 1); if (i === lo) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+    glowStroke(C.phos, 2, 10);
+    if (px >= 14) {
+      ctx.fillStyle = C.bloom;
+      for (let i = lo; i <= hi; i++) { ctx.beginPath(); ctx.arc(xOf(i), yOf(s1[i], 1), 2.6, 0, 7); ctx.fill(); }
+    }
+    // Trigger level, and a tick on every rising edge through it.
+    const ty = yOf(st.trig, 1);
+    line(L, ty, L + pw, ty, [5, 5], "rgba(94,242,156,.5)");
+    ctx.fillStyle = C.phos;
+    for (let i = Math.max(lo, 1); i <= hi; i++) {
+      if (s1[i - 1] < st.trig && s1[i] >= st.trig) { const x = xOf(i); ctx.beginPath(); ctx.moveTo(x - 4, ty + 6); ctx.lineTo(x, ty - 1); ctx.lineTo(x + 4, ty + 6); ctx.fill(); }
+    }
+  }
+
+  // The beam: a bright spot sweeping the visible span, with a short afterglow.
+  if (st.run && st.ch1 && !reduced) {
+    const b = lo + Math.floor(st.beam * (hi - lo + 1));
+    const tail = Math.max(3, Math.round((hi - lo) * 0.06));
+    ctx.beginPath();
+    for (let i = Math.max(lo, b - tail); i <= Math.min(hi, b); i++) { const x = xOf(i), y = yOf(s1[i], 1); if (i === Math.max(lo, b - tail)) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+    glowStroke(C.bloom, 2.4, 16);
+    if (b <= hi) { ctx.fillStyle = C.bloom; ctx.shadowColor = C.phos; ctx.shadowBlur = 18; ctx.beginPath(); ctx.arc(xOf(b), yOf(s1[b], 1), 3.4, 0, 7); ctx.fill(); ctx.shadowBlur = 0; }
+  }
+
+  // Cursors A and B.
+  if (st.cursors) for (const [k, lab] of [["ca", "A"], ["cb", "B"]]) {
+    const x = xOf(st[k]);
+    line(x, T, x, T + ph, [2, 3], C.bloom);
+    ctx.fillStyle = C.bloom; ctx.font = '600 11px "Plex Mono"'; ctx.fillText(lab, x + 4, T + 14);
+  }
+
+  // Hover readout.
+  if (st.hover !== null && st.hover >= lo && st.hover <= hi) {
+    const i = st.hover, x = xOf(i);
+    line(x, T, x, T + ph, [], "rgba(207,255,227,.35)");
+    const lines = [fmtDate(S.dates[i], true)];
+    if (st.ch1) lines.push("CH1  " + s1[i] + " contributions" + (st.mode === "week" ? " in 7 days" : ""));
+    if (st.ch2) lines.push("CH2  " + (st.mode === "week" ? sig(2)[i] + " of 7 days active" : (S.act[i] ? "active" : "quiet")));
+    ctx.font = '500 11.5px "Plex Mono"';
+    const bw = Math.max(...lines.map(l => ctx.measureText(l).width)) + 16, bh = lines.length * 17 + 10;
+    let bx = x + 12; if (bx + bw > L + pw) bx = x - 12 - bw;
+    const by = T + 10;
+    ctx.fillStyle = "rgba(3,19,11,.92)"; ctx.strokeStyle = C.phosDim; ctx.setLineDash([]);
+    roundRect(bx, by, bw, bh, 4); ctx.fill(); ctx.stroke();
+    lines.forEach((l, k) => { ctx.fillStyle = k ? (l.startsWith("CH2") ? C.amber : C.phos) : C.bloom; ctx.fillText(l, bx + 8, by + 19 + k * 17); });
+  }
+  ctx.restore();
+
+  // Ground markers on the left, trigger arrow on the right.
+  marker(1, C.phos, st.ch1); marker(2, C.amber, st.ch2);
+  if (st.ch1) { const ty = clamp(yOf(st.trig, 1), T, T + ph); ctx.fillStyle = C.phos; ctx.beginPath(); ctx.moveTo(L + pw + 12, ty - 5); ctx.lineTo(L + pw + 3, ty); ctx.lineTo(L + pw + 12, ty + 5); ctx.fill(); }
+
+  // Status line along the top, dates along the bottom.
+  ctx.font = '500 11px "Plex Mono"'; ctx.setLineDash([]);
+  let tx = L;
+  const put = (text, color) => { ctx.fillStyle = color; ctx.fillText(text, tx, 19); tx += ctx.measureText(text).width + 18; };
+  if (st.ch1) put("1  " + V1[st.v1] + unit1() + "/div", C.phos);
+  if (st.ch2) put("2  " + V2[st.v2] + (st.mode === "week" ? " d/div" : "/div"), C.amber);
+  put("M  " + TDIV[st.t].l + "/div", C.phosDim);
+  if (st.ch1) put("T  " + (Math.round(st.trig * 10) / 10), C.phosDim);
+  ctx.textAlign = "right"; ctx.fillStyle = st.run ? C.phos : C.amber;
+  ctx.fillText(st.run ? "RUN" : "STOP", L + pw, 19); ctx.textAlign = "left";
+
+  ctx.fillStyle = C.phosDim; ctx.font = '400 10.5px "Plex Mono"'; ctx.textAlign = "center";
+  const every = Math.max(1, Math.ceil(64 / divW));
+  for (let d = 0; d <= COLS; d += every) {
+    const i = Math.round(view().start + d * TDIV[st.t].d);
+    if (i < 0 || i >= S.n) continue;
+    const dt = S.dates[i];
+    const text = TDIV[st.t].d >= 7 ? dt.getDate() + " " + MON[dt.getMonth()] : DOW[dt.getDay()] + " " + dt.getDate();
+    ctx.fillText(text, L + d * divW, T + ph + 20);
+  }
+  ctx.textAlign = "left";
+}
+
+function marker(ch, color, on) {
+  if (!on) return;
+  // CH2's marker sits one marker further out, so both stay visible when they share a level.
+  const y = yOf(0, ch), {T, ph} = G, cy = clamp(y, T + 6, T + ph - 6), L = G.L - (ch === 2 ? 15 : 0);
+  ctx.fillStyle = color; ctx.beginPath();
+  ctx.moveTo(L - 14, cy - 6); ctx.lineTo(L - 3, cy); ctx.lineTo(L - 14, cy + 6); ctx.fill();
+  ctx.fillStyle = "#03130B"; ctx.font = '600 9px "Plex Mono"'; ctx.fillText(String(ch), L - 13, cy + 3.5);
+}
+function line(x0, y0, x1, y1, dash, color) {
+  ctx.save(); ctx.setLineDash(dash); if (color) ctx.strokeStyle = color;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.restore();
+}
+function glowStroke(color, width, blur) {
+  ctx.save(); ctx.setLineDash([]); ctx.lineJoin = "round"; ctx.lineCap = "round";
+  ctx.strokeStyle = color; ctx.globalAlpha = 0.35; ctx.lineWidth = width * 3; ctx.shadowColor = color; ctx.shadowBlur = blur; ctx.stroke();
+  ctx.globalAlpha = 1; ctx.lineWidth = width; ctx.shadowBlur = blur / 2; ctx.stroke(); ctx.restore();
+}
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+// ---------------------------------------------------------------- measurements
+function measure() {
+  const {start, end} = view(), lo = Math.max(0, start), hi = Math.min(S.n - 1, end), s1 = sig(1);
+  let sum = 0, active = 0, peak = 0, peakAt = lo, meanAcc = 0, edges = 0;
+  for (let i = lo; i <= hi; i++) {
+    sum += S.raw[i]; active += S.act[i]; meanAcc += s1[i];
+    if (s1[i] > peak) { peak = s1[i]; peakAt = i; }
+    if (i > lo && s1[i - 1] < st.trig && s1[i] >= st.trig) edges++;
+  }
+  const days = hi - lo + 1;
+  const rows = [
+    ["head", "IN VIEW · " + fmtDate(S.dates[lo]) + " to " + fmtDate(S.dates[hi])],
+    ["Contributions", sum.toLocaleString()],
+    ["Active days", active + " of " + days],
+    ["CH1 max " + unit1(), peak + " (" + fmtDate(S.dates[peakAt]) + ")"],
+    ["CH1 mean " + unit1(), (meanAcc / days).toFixed(1)],
+    ["Rising edges past T", edges],
+  ];
+  if (st.cursors) {
+    const a = Math.min(st.ca, st.cb), b = Math.max(st.ca, st.cb);
+    let between = 0, act = 0; for (let i = Math.max(0, a); i <= Math.min(S.n - 1, b); i++) { between += S.raw[i]; act += S.act[i]; }
+    const dt = b - a + 1;
+    rows.push(["head", "CURSORS A TO B"],
+              ["A", fmtDate(S.dates[clamp(st.ca, 0, S.n - 1)])], ["B", fmtDate(S.dates[clamp(st.cb, 0, S.n - 1)])],
+              ["Span", dt + (dt === 1 ? " day" : " days")], ["Contributions", between], ["Per day", (between / dt).toFixed(1)],
+              ["Active days", act + " of " + dt]);
+  }
+  rows.push(["head", "WHOLE YEAR"], ["Contributions", S.total.toLocaleString()], ["Longest streak", S.streak + " days"]);
+  $("meas").innerHTML = rows.map(([k, v]) => k === "head" ? '<div class="head">' + v + "</div>"
+    : "<span>" + k + "</span><b>" + v + "</b>").join("");
+  canvas.setAttribute("aria-label", "Oscilloscope screen. " + fmtDate(S.dates[lo]) + " to " + fmtDate(S.dates[hi]) +
+    ": " + sum + " contributions, active on " + active + " of " + days + " days.");
+}
+
+// ---------------------------------------------------------------- the screen as a control
+function bindScreen() {
+  let drag = null;
+  const pos = e => { const r = canvas.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; };
+  canvas.addEventListener("pointerdown", e => {
+    const p = pos(e);
+    canvas.setPointerCapture(e.pointerId);
+    if (st.cursors) for (const k of ["ca", "cb"]) if (Math.abs(xOf(st[k]) - p.x) < 10) { drag = {cursor: k}; return; }
+    drag = {x: p.x, h: st.h}; canvas.classList.add("dragging");
+  });
+  canvas.addEventListener("pointermove", e => {
+    const p = pos(e);
+    if (drag && drag.cursor) { st[drag.cursor] = clamp(iOf(p.x), 0, S.n - 1); changed(); return; }
+    if (drag) { const days = Math.round((p.x - drag.x) / (G.pw / span())); st.h = clamp(drag.h + days, 0, maxH()); }
+    st.hover = (p.x >= G.L && p.x <= G.L + G.pw) ? clamp(iOf(p.x), 0, S.n - 1) : null;
+    changed();
+  });
+  const end = () => { drag = null; canvas.classList.remove("dragging"); };
+  canvas.addEventListener("pointerup", end);
+  canvas.addEventListener("pointercancel", end);
+  canvas.addEventListener("pointerleave", () => { if (!drag) { st.hover = null; changed(); } });
+  canvas.addEventListener("wheel", e => {
+    e.preventDefault();
+    const p = pos(e), anchor = iOf(p.x), frac = (p.x - G.L) / G.pw;
+    const t = clamp(st.t + (e.deltaY > 0 ? 1 : -1), 0, TDIV.length - 1);
+    if (t === st.t) return;
+    st.t = t;   // keep the day under the pointer where it is
+    st.h = clamp(Math.round(S.n - 1 - (anchor - frac * span() + span() - 1)), 0, maxH());
+    changed();
+  }, {passive: false});
+  canvas.addEventListener("keydown", e => {
+    const map = {ArrowLeft: 1, ArrowRight: -1};
+    if (e.key in map) { e.preventDefault(); st.h = clamp(st.h + map[e.key] * TDIV[st.t].d, 0, maxH()); changed(); }
+    if (e.key === "+" || e.key === "=") { e.preventDefault(); turn("t", -1); }
+    if (e.key === "-") { e.preventDefault(); turn("t", 1); }
+  });
+}
+
+// ---------------------------------------------------------------- loop
+function changed() { if (!S) return; st.h = clamp(st.h, 0, maxH()); paintKnobs(); paintButtons(); measure(); draw(); }
+let last = 0, looping = false;
+function loop(ts) {
+  if (!st.run || reduced) { looping = false; return; }
+  if (!looping) { looping = true; last = performance.now(); }
+  const now = ts || performance.now();
+  st.beam = (st.beam + (now - last) / 3200) % 1; last = now;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+new ResizeObserver(() => { layout(); draw(); }).observe(canvas.parentElement);
+bindKnobs(); bindButtons(); bindScreen();
+layout();
+load().then(() => { if (st.run) requestAnimationFrame(loop); }).catch(err => {
+  $("stamp").textContent = "Could not load the samples: " + err.message;
+});
+</script>
+</body>
+</html>

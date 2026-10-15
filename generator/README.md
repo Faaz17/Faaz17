@@ -28,6 +28,24 @@ The phone source uses the full raw URL on purpose. GitHub rewrites a relative
 `srcset`, and a relative `srcset` would otherwise resolve against
 github.com/Faaz17 and 404.
 
+## The working oscilloscope
+
+`scope/index.html` is a real, operable oscilloscope of the same data, published
+with GitHub Pages at https://faaz17.github.io/Faaz17/scope/. The scope card in
+the README links to it, because a README image cannot run code: GitHub strips
+scripts from it, so the card can animate but never respond to a click.
+
+The page reads `scope/data.json`, one sample per day, which `build.py` writes
+and the workflow commits with the cards. It is one self-contained file, CSS and
+JavaScript included, and loads its fonts from `assets/fonts`. Controls: TIME/DIV
+and POSITION (zoom and move through the year), VOLTS/DIV and POSITION per
+channel, TRIG LEVEL, RUN/STOP, AUTOSET, CURSORS, and WEEKLY SUM or DAILY
+acquisition. The screen itself pans when dragged, zooms on scroll and reads out
+any day on hover or tap.
+
+`.nojekyll` stops Pages from running Jekyll over the repo, and the root
+`index.html` forwards to the scope.
+
 ## Changing what the cards say
 
 Edit `profile.toml`. It holds the hero lines, the toolchain chips, the career
@@ -89,6 +107,7 @@ runs at 07:23 Dubai time, when both calendars agree on the date.
 | `parts.py` | Palette, board, copper, chips, edge connector, the SVG wrapper |
 | `hero.py` | The main board: name, role, focus areas, the chip |
 | `cv.py` | The career timeline (a logic analyser) and the papers and awards board |
+| `matrix.py` | The contribution calendar as an LED dot matrix, lit at GitHub's own levels |
 | `scope.py` | The oscilloscope of weekly contributions |
 | `bench.py` | Languages as LED bar graphs and the toolchain as chips |
 | `modules.py` | Project modules with their signal-flow diagrams, and connector badges |

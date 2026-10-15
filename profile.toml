@@ -11,6 +11,8 @@ name = "Faaz Ali Sayyed"
 # The current role sits beside the board's status LED.
 role = "President, Engineers Australia Student Society at UOWD"
 term = "2026/27"
+# A lit status tag at the top of the board. Leave empty to hide it.
+status = "Open to internships"
 chip = "FAAZ17"
 # Each focus area is drawn as a net label routed back to the chip. Three fit.
 nets = [
@@ -51,17 +53,23 @@ parts = [
 
 [career]
 # A logic analyser of roles over time: one channel each, high while it ran.
+# Dates and titles follow LinkedIn (checked 15 Oct 2026); the CV gives the two
+# 2025 internships shorter dates, so update whichever is wrong.
 # Months are "YYYY-MM"; leave out `to` while a role is still going. `kind` sets
 # the trace colour: work (amber), lead (green) or study (mint).
 start = "2024-09"
 end = "2026-12"
 channels = [
   { org = "UOWD", role = "BEng Computer & Autonomous Systems, CGPA 9.3/10", kind = "study", from = "2024-09" },
-  { org = "UOWD Tech Club", role = "Deputy Head of Engineering", kind = "lead", from = "2025-01", to = "2025-11" },
-  { org = "Emertxe", role = "Embedded & IoT Intern: C/C++ firmware, sensor IoT", kind = "work", from = "2025-05", to = "2025-07" },
-  { org = "Pantech.AI", role = "ML Intern: PyTorch, fine-tuned LLMs", kind = "work", from = "2025-07", to = "2025-08" },
-  { org = "Engineers Australia UAE", role = "ECT Board Member", kind = "lead", from = "2025-07" },
+  { org = "UOWD Tech Club", role = "Engineering Executive, then Deputy Head", kind = "lead", from = "2025-01", to = "2025-11" },
+  { org = "UOWD Peer Tutoring", role = "Peer Tutor, 20+ students", kind = "work", from = "2025-01" },
+  { org = "Emertxe", role = "Embedded & IoT Intern: C/C++ firmware, IoT", kind = "work", from = "2025-07", to = "2025-10" },
+  { org = "Pantech.AI", role = "ML Engineer intern: PyTorch, NLP pipelines", kind = "work", from = "2025-07", to = "2025-10" },
+  { org = "Engineers Australia UAE", role = "ECT Board Member, 18+ events", kind = "lead", from = "2025-07", to = "2026-07" },
   { org = "Techfest, IIT Bombay", role = "College Ambassador", kind = "lead", from = "2025-07", to = "2025-12" },
+  { org = "Rabbitron Lab", role = "Club Representative", kind = "lead", from = "2026-02" },
+  { org = "stockd", role = "Chief Technology Officer (contract)", kind = "work", from = "2026-06", to = "2026-09" },
+  { org = "AENS", role = "Intern: AI and software development", kind = "work", from = "2026-07" },
   { org = "EA Student Society, UOWD", role = "President", kind = "lead", from = "2026-07" },
 ]
 

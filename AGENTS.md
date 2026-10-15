@@ -11,6 +11,8 @@ glyph outlines; every card complete with animation off; a phone layout for
 every card).
 
 - Change content in `profile.toml`, never in the generated SVGs.
+- `scope/index.html` is the operable oscilloscope on GitHub Pages; it reads
+  `scope/data.json`, which the build writes. Keep it one self-contained file.
 - After a change, run `python generator/build.py --offline` and look at the
   result before pushing.
 - Prose on the profile: plain and specific, no em dashes.
